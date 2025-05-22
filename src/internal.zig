@@ -16,7 +16,7 @@ pub fn AllOf(comptime xs: []const type) type {
 }
 
 fn Struct(comptime fields: []const std.builtin.Type.StructField) type {
-    return @Type(.{ .Struct = .{ .layout = .Auto, .fields = fields, .decls = &.{}, .is_tuple = false } });
+    return @Type(.{ .@"struct" = .{ .layout = .@"auto", .fields = fields, .decls = &.{}, .is_tuple = false } });
 }
 
 pub const Method = enum {
