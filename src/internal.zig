@@ -30,7 +30,7 @@ pub const Method = enum {
 
 pub fn name(comptime Top: type, comptime This: type) string {
     inline for (std.meta.declarations(Top)) |item| {
-        if (item.is_pub and @field(Top, item.name) == This) {
+        if (@field(Top, item.name) == This) {
             return item.name;
         }
     }
