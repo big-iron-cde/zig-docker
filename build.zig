@@ -4,6 +4,10 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    const module = b.addModule("docker", .{
+        .root_source_file = b.path("src/direct.zig"),
+    });
+
     const lib = b.addStaticLibrary(.{
         .name = "docker", 
         .root_source_file = b.path("src/direct.zig"),
