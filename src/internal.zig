@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const string = []const u8;
 const zfetch = @import("zfetch");
 const UrlValues = @import("UrlValues");
@@ -114,7 +115,7 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
             const full_url = try std.mem.concat(alloc, u8, &.{ url, "?", try paramsQ.encode() });
             std.log.debug("{s} {s}", .{ @tagName(fixMethod(method)), full_url });
 
-            var conn = try zfetch.Connection.connect(alloc, .{ .protocol = .unix, .hostname = "/var/run/docker.sock" });
+            const conn = try zfetch.Connection.connect(alloc, .{ .protocol = .unix, .hostname = "/var/run/docker.sock" });
             var req = try zfetch.Request.fromConnection(alloc, conn, full_url);
 
             var paramsB = try newUrlValues(alloc, B, argsB);
@@ -126,8 +127,8 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
             try req.do(fixMethod(method), headers, if (paramsB.inner.count() == 0) null else try paramsB.encode());
             const r = req.reader();
             const body_content = try r.readAllAlloc(alloc, 1024 * 1024 * 5);
-            const code = try std.fmt.allocPrint(alloc, "{d}", .{@enumToInt(req.status)});
-            std.log.debug("{d}", .{@enumToInt(req.status)});
+            const code = try std.fmt.allocPrint(alloc, "{d}", .{builtin.enumToInt(req.status)});
+            std.log.debug("{d}", .{builtin.enumToInt(req.status)});
             std.log.debug("{s}", .{body_content});
 
             inline for (std.meta.fields(R)) |item| {

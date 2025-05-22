@@ -3,3 +3,4 @@ zig-*
 deps.zig
 swagger.yaml
 zigmod.lock
+.zig-cache
