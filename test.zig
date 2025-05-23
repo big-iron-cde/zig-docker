@@ -5,7 +5,7 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const alloc = gpa.allocator();
 
-    const list = try docker.@"/containers/json".get(alloc, .{
+    const list = try docker.@"/images/json".get(alloc, .{
         .limit = 0,
         .filters = "",
     });
