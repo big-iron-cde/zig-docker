@@ -1,9 +1,9 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const string = []const u8;
-const zfetch = @import("zfetch");
-const UrlValues = @import("UrlValues");
-const extras = @import("extras");
+const zfetch = @import("../zfetch/main.zig");
+const UrlValues = @import("../zig-UrlValues/main.zig");
+const extras = @import("../zig-extras/main.zig");
 
 const shared = @import("./shared.zig");
 
