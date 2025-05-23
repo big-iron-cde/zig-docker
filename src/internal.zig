@@ -1,9 +1,9 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const string = []const u8;
-const zfetch = @import("../zfetch/main.zig");
-const UrlValues = @import("../zig-UrlValues/main.zig");
-const extras = @import("../zig-extras/main.zig");
+//const zfetch = @import("zfetch/main.zig");
+const UrlValues = @import("zig-UrlValues/main.zig");
+const extras = @import("zig-extras/lib.zig");
 
 const shared = @import("./shared.zig");
 
@@ -107,39 +107,48 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
             @setEvalBranchQuota(1_000_000);
 
             const endpoint_actual = comptime replace(replace(endpoint, '{', "{["), '}', "]s}");
-            const url = try std.fmt.allocPrint(alloc, "http://localhost" ++ "/" ++ shared.version ++ endpoint_actual, if (P != void) argsP else .{});
-
+            const url = try std.fmt.allocPrint(alloc, "http://localhost:2375" ++ "/" ++ shared.version ++ endpoint_actual, if (P != void) argsP else .{});
+            
             var paramsQ = try newUrlValues(alloc, Q, argsQ);
-            defer paramsQ.inner.deinit();
+            defer paramsQ.inner.deinit(alloc);
 
             const full_url = try std.mem.concat(alloc, u8, &.{ url, "?", try paramsQ.encode() });
             std.log.debug("{s} {s}", .{ @tagName(fixMethod(method)), full_url });
 
-            const conn = try zfetch.Connection.connect(alloc, .{ .protocol = .unix, .hostname = "/var/run/docker.sock" });
-            var req = try zfetch.Request.fromConnection(alloc, conn, full_url);
-
             var paramsB = try newUrlValues(alloc, B, argsB);
-            defer paramsB.inner.deinit();
+            defer paramsB.inner.deinit(alloc);
 
-            var headers = zfetch.Headers.init(alloc);
-            try headers.appendValue("Content-Type", "application/x-www-form-urlencoded");
+            var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+            var client = std.http.Client{ .allocator = gpa.allocator() };
+            defer client.deinit();
+            var headers: [4096]u8 = undefined;
+            var body: [65536]u8 = undefined;
+            const uri = try std.Uri.parse(full_url);
+            var req = try client.open(fixMethod(method), uri, .{ .server_header_buffer = &headers});
+            defer req.deinit();
 
-            try req.do(fixMethod(method), headers, if (paramsB.inner.count() == 0) null else try paramsB.encode());
-            const r = req.reader();
-            const body_content = try r.readAllAlloc(alloc, 1024 * 1024 * 5);
-            const code = try std.fmt.allocPrint(alloc, "{d}", .{builtin.enumToInt(req.status)});
-            std.log.debug("{d}", .{builtin.enumToInt(req.status)});
-            std.log.debug("{s}", .{body_content});
+            try req.send();
+            try req.finish();
+            try req.wait();
 
+            _ = try req.readAll(&body);
+
+            const length = req.response.content_length orelse return error.NoBodyLength;
+            const code = try std.fmt.allocPrint(alloc, "{d}", .{req.response.status});
+
+            std.log.debug("{s}", .{body[0..length]});
+            std.debug.print("Response: {any} \n\n", .{req.response});
+            std.debug.print("Status {d}\n\n", .{req.response.status});
             inline for (std.meta.fields(R)) |item| {
+                std.debug.print("Code: {s}\n", .{code});
+                std.debug.print("Item: {s}\n", .{item.name});
                 if (std.mem.eql(u8, item.name, code)) {
-                    var jstream = std.json.Scanner.initCompleteInput(alloc, body_content);
-                    const res = try std.json.parseFromTokenSource(extras.FieldType(R, @field(std.meta.FieldEnum(R), item.name)), alloc, &jstream, .{
-                        .ignore_unknown_fields = true,
-                    });
-                    return @unionInit(R, item.name, res);
+                    const res = try std.json.parseFromSlice(std.meta.FieldType(R, @field(std.meta.FieldEnum(R), item.name)), alloc, body[0..length], .{});
+                    defer res.deinit();
+                    return @unionInit(R, item.name, res.value);
                 }
             }
+
             @panic(code);
         }
     };
@@ -166,12 +175,12 @@ fn newUrlValues(alloc: std.mem.Allocator, comptime T: type, args: T) !*UrlValues
         const key = item.name;
         const value = @field(args, item.name);
 
-        if (comptime std.meta.trait.isZigString(U)) {
-            try params.add(key, value);
+        if (comptime isZigString(U)) {
+            try params.append(key, value);
         } else if (U == bool) {
-            try params.add(key, if (value) "true" else "false");
+            try params.append(key, if (value) "true" else "false");
         } else if (U == i32) {
-            try params.add(key, try std.fmt.allocPrint(alloc, "{d}", .{value}));
+            try params.append(key, try std.fmt.allocPrint(alloc, "{d}", .{value}));
         } else {
             @compileError(@typeName(U));
         }
@@ -181,8 +190,8 @@ fn newUrlValues(alloc: std.mem.Allocator, comptime T: type, args: T) !*UrlValues
 
 fn meta_fields(comptime T: type) []const std.builtin.Type.StructField {
     return switch (@typeInfo(T)) {
-        .Struct => std.meta.fields(T),
-        .Void => &.{},
+        .@"struct" => std.meta.fields(T),
+        .@"void" => &.{},
         else => |v| @compileError(@tagName(v)),
     };
 }
@@ -195,5 +204,33 @@ fn fixMethod(m: Method) std.http.Method {
         .put => .PUT,
         .patch => .PATCH,
         .delete => .DELETE,
+    };
+}
+
+pub fn isZigString(comptime T: type) bool {
+    return comptime blk: {
+        // Only pointer types can be strings, no optionals
+        const info = @typeInfo(T);
+        if (info != .@"pointer") break :blk false;
+
+        const ptr = &info.@"pointer";
+        // Check for CV qualifiers that would prevent coerction to []const u8
+        if (ptr.is_volatile or ptr.is_allowzero) break :blk false;
+
+        // If it's already a slice, simple check.
+        if (ptr.size == .@"slice") {
+            break :blk ptr.child == u8;
+        }
+
+        // Otherwise check if it's an array type that coerces to slice.
+        if (ptr.size == .One) {
+            const child = @typeInfo(ptr.child);
+            if (child == .Array) {
+                const arr = &child.Array;
+                break :blk arr.child == u8;
+            }
+        }
+
+        break :blk false;
     };
 }

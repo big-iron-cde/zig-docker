@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const tls = @import("iguanaTLS");
+const tls = @import("iguanaTLS/main.zig");
 
 const assert = std.debug.assert;
 

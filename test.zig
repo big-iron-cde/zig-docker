@@ -1,16 +1,16 @@
 const std = @import("std");
-const docker = @import("docker");
+const docker = @import("src/direct.zig");
 
-pub fn main() !void {
+test "list images" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const alloc = gpa.allocator();
 
     const list = try docker.@"/images/json".get(alloc, .{
-        .limit = 0,
+        .all = true,
         .filters = "",
     });
 
     for (list.@"200") |item| {
-        std.log.info("{s} {s} {s} {d} {s} {any} {s}", .{ item.Id[0..20], item.Image, item.Command, item.Created, item.Status, item.Ports, item.Names });
+        std.log.info("{s} {d}", .{ item.Id[0..20], item.Created });
     }
 }

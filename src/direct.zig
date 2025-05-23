@@ -1730,7 +1730,7 @@ pub const @"/containers/{id}/wait" = struct {
             @"not-running",
             @"next-exit",
             removed,
-        } = "not-running" },
+        }}, 
         void,
         union(enum) {
             @"200": ContainerWaitResponse,
