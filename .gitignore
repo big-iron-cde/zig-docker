@@ -1,6 +1,2 @@
-zig-*
-.zigmod
-deps.zig
-swagger.yaml
-zigmod.lock
-.zig-cache
+.zig-cache/
+zig-out/

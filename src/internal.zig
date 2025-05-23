@@ -1,10 +1,9 @@
 const std = @import("std");
+//const http = @import("http");
 const builtin = @import("builtin");
 const string = []const u8;
-//const zfetch = @import("zfetch/main.zig");
 const UrlValues = @import("zig-UrlValues/main.zig");
 const extras = @import("zig-extras/lib.zig");
-
 const shared = @import("./shared.zig");
 
 pub fn AllOf(comptime xs: []const type) type {
@@ -135,10 +134,9 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
 
             const length = req.response.content_length orelse return error.NoBodyLength;
             const code = try std.fmt.allocPrint(alloc, "{d}", .{req.response.status});
-
+ 
             std.log.debug("{s}", .{body[0..length]});
-            std.debug.print("Response: {any} \n\n", .{req.response});
-            std.debug.print("Status {d}\n\n", .{req.response.status});
+            std.debug.print("{any}\n", .{translate_http_codes(code)});
             inline for (std.meta.fields(R)) |item| {
                 std.debug.print("Code: {s}\n", .{code});
                 std.debug.print("Item: {s}\n", .{item.name});
@@ -233,4 +231,9 @@ pub fn isZigString(comptime T: type) bool {
 
         break :blk false;
     };
+}
+
+pub fn translate_http_codes(Status: anytype) !void {
+    const http_code = switch(Status) {
+    }
 }
