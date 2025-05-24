@@ -366,7 +366,7 @@ pub const ImageSummary = struct {
     Size: i32,
     SharedSize: i32,
     VirtualSize: ?i32 = null,
-    Labels: struct {},
+    Labels: ?struct {} = null,
     Containers: i32,
 };
 

@@ -121,7 +121,7 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
             var client = std.http.Client{ .allocator = gpa.allocator() };
             defer client.deinit();
             var headers: [4096]u8 = undefined;
-            var body: [65536]u8 = undefined;
+            var body: [1024 * 1024 * 5]u8 = undefined;
             const uri = try std.Uri.parse(full_url);
             var req = try client.open(fixMethod(method), uri, .{ .server_header_buffer = &headers});
             defer req.deinit();
@@ -133,16 +133,24 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
             _ = try req.readAll(&body);
 
             const length = req.response.content_length orelse return error.NoBodyLength;
-            const code = try std.fmt.allocPrint(alloc, "{d}", .{req.response.status});
- 
+            const code = translate_http_codes(req.response.status);            
+
             std.log.debug("{s}", .{body[0..length]});
-            std.debug.print("{any}\n", .{translate_http_codes(code)});
+
             inline for (std.meta.fields(R)) |item| {
-                std.debug.print("Code: {s}\n", .{code});
-                std.debug.print("Item: {s}\n", .{item.name});
                 if (std.mem.eql(u8, item.name, code)) {
-                    const res = try std.json.parseFromSlice(std.meta.FieldType(R, @field(std.meta.FieldEnum(R), item.name)), alloc, body[0..length], .{});
-                    defer res.deinit();
+                    var stream = std.json.Scanner.initCompleteInput(alloc, body[0..length]);
+                    defer stream.deinit();
+                    std.debug.print("{s}", .{ stream.input } );
+                    var diag = std.json.Diagnostics{};
+                    stream.enableDiagnostics(&diag);
+                    const res = try std.json.parseFromSlice(
+                        std.meta.FieldType(R, @field(std.meta.FieldEnum(R), item.name)),
+                        alloc,
+                        stream.input,
+                        .{ .ignore_unknown_fields = true }
+                    );
+                    //defer res.deinit();
                     return @unionInit(R, item.name, res.value);
                 }
             }
@@ -233,7 +241,10 @@ pub fn isZigString(comptime T: type) bool {
     };
 }
 
-pub fn translate_http_codes(Status: anytype) !void {
-    const http_code = switch(Status) {
-    }
+pub fn translate_http_codes(Status: anytype) string {
+    const result = switch(Status) {
+        std.http.Status.ok => "200",
+        else => "500",
+    };
+    return result;
 }
