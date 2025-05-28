@@ -15,7 +15,7 @@ pub fn AllOf(comptime xs: []const type) type {
 }
 
 fn Struct(comptime fields: []const std.builtin.Type.StructField) type {
-    return @Type(.{ .@"struct" = .{ .layout = .@"auto", .fields = fields, .decls = &.{}, .is_tuple = false } });
+    return @Type(.{ .@"struct" = .{ .layout = .auto, .fields = fields, .decls = &.{}, .is_tuple = false } });
 }
 
 pub const Method = enum {
@@ -107,7 +107,7 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
 
             const endpoint_actual = comptime replace(replace(endpoint, '{', "{["), '}', "]s}");
             const url = try std.fmt.allocPrint(alloc, "http://localhost:2375" ++ "/" ++ shared.version ++ endpoint_actual, if (P != void) argsP else .{});
-            
+
             var paramsQ = try newUrlValues(alloc, Q, argsQ);
             defer paramsQ.inner.deinit(alloc);
 
@@ -123,7 +123,7 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
             var headers: [4096]u8 = undefined;
             var body: [1024 * 1024 * 5]u8 = undefined;
             const uri = try std.Uri.parse(full_url);
-            var req = try client.open(fixMethod(method), uri, .{ .server_header_buffer = &headers});
+            var req = try client.open(fixMethod(method), uri, .{ .server_header_buffer = &headers });
             defer req.deinit();
 
             try req.send();
@@ -133,23 +133,17 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
             _ = try req.readAll(&body);
 
             const length = req.response.content_length orelse return error.NoBodyLength;
-            const code = translate_http_codes(req.response.status);            
+            const code = translate_http_codes(req.response.status);
 
             std.log.debug("{s}", .{body[0..length]});
 
             inline for (std.meta.fields(R)) |item| {
                 if (std.mem.eql(u8, item.name, code)) {
                     var stream = std.json.Scanner.initCompleteInput(alloc, body[0..length]);
-                    defer stream.deinit();
-                    std.debug.print("{s}", .{ stream.input } );
+                    //defer stream.deinit();
                     var diag = std.json.Diagnostics{};
                     stream.enableDiagnostics(&diag);
-                    const res = try std.json.parseFromSlice(
-                        std.meta.FieldType(R, @field(std.meta.FieldEnum(R), item.name)),
-                        alloc,
-                        stream.input,
-                        .{ .ignore_unknown_fields = true }
-                    );
+                    const res = try std.json.parseFromSlice(std.meta.FieldType(R, @field(std.meta.FieldEnum(R), item.name)), alloc, stream.input, .{});
                     //defer res.deinit();
                     return @unionInit(R, item.name, res.value);
                 }
@@ -197,7 +191,7 @@ fn newUrlValues(alloc: std.mem.Allocator, comptime T: type, args: T) !*UrlValues
 fn meta_fields(comptime T: type) []const std.builtin.Type.StructField {
     return switch (@typeInfo(T)) {
         .@"struct" => std.meta.fields(T),
-        .@"void" => &.{},
+        .void => &.{},
         else => |v| @compileError(@tagName(v)),
     };
 }
@@ -217,14 +211,14 @@ pub fn isZigString(comptime T: type) bool {
     return comptime blk: {
         // Only pointer types can be strings, no optionals
         const info = @typeInfo(T);
-        if (info != .@"pointer") break :blk false;
+        if (info != .pointer) break :blk false;
 
-        const ptr = &info.@"pointer";
+        const ptr = &info.pointer;
         // Check for CV qualifiers that would prevent coerction to []const u8
         if (ptr.is_volatile or ptr.is_allowzero) break :blk false;
 
         // If it's already a slice, simple check.
-        if (ptr.size == .@"slice") {
+        if (ptr.size == .slice) {
             break :blk ptr.child == u8;
         }
 
@@ -242,7 +236,7 @@ pub fn isZigString(comptime T: type) bool {
 }
 
 pub fn translate_http_codes(Status: anytype) string {
-    const result = switch(Status) {
+    const result = switch (Status) {
         std.http.Status.ok => "200",
         else => "500",
     };

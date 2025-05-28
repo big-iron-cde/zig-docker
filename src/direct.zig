@@ -362,12 +362,12 @@ pub const ImageSummary = struct {
     ParentId: string,
     RepoTags: []const string,
     RepoDigests: []const string,
-    Created: i32,
-    Size: i32,
-    SharedSize: i32,
-    VirtualSize: ?i32 = null,
+    Created: i64,
+    Size: i64,
+    SharedSize: i64,
+    VirtualSize: i64,
     Labels: ?struct {} = null,
-    Containers: i32,
+    Containers: i64,
 };
 
 pub const AuthConfig = struct {
@@ -1730,7 +1730,7 @@ pub const @"/containers/{id}/wait" = struct {
             @"not-running",
             @"next-exit",
             removed,
-        }}, 
+        } },
         void,
         union(enum) {
             @"200": ContainerWaitResponse,
@@ -1822,7 +1822,7 @@ pub const @"/images/json" = struct {
         .get,
         internal.name(Top, @This()),
         void,
-        struct { all: bool = false, filters: string, @"shared-size": bool = false, digests: bool = false },
+        struct { all: bool = false, filters: string = "", @"shared-size": bool = false, digests: bool = false },
         void,
         union(enum) {
             @"200": []const ImageSummary,
