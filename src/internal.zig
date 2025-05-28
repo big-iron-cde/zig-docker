@@ -140,11 +140,9 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
             inline for (std.meta.fields(R)) |item| {
                 if (std.mem.eql(u8, item.name, code)) {
                     var stream = std.json.Scanner.initCompleteInput(alloc, body[0..length]);
-                    //defer stream.deinit();
                     var diag = std.json.Diagnostics{};
                     stream.enableDiagnostics(&diag);
                     const res = try std.json.parseFromSlice(std.meta.FieldType(R, @field(std.meta.FieldEnum(R), item.name)), alloc, stream.input, .{});
-                    //defer res.deinit();
                     return @unionInit(R, item.name, res.value);
                 }
             }
