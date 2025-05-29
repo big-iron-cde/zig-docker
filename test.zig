@@ -8,10 +8,9 @@ test "list images" {
     const response = try docker.@"/images/json".get(alloc, .{
         .all = true,
     });
-    std.debug.print("{any}", .{response});
 
     for (response.@"200") |item| {
-        std.debug.print("{s} {d}", .{ item.Id[0..20], item.Created });
+        std.debug.print("{s} {d}\n", .{ item.Id[0..20], item.Created });
     }
 }
 
