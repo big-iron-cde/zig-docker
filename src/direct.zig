@@ -106,10 +106,10 @@ pub const Resources = struct {
         Path: ?string = null,
         Weight: i32 = 0,
     } = null,
-    BlkioDeviceReadBps: ?[]const ?ThrottleDevice = null,
-    BlkioDeviceWriteBps: ?[]const ?ThrottleDevice = null,
-    BlkioDeviceReadIOps: ?[]const ?ThrottleDevice = null,
-    BlkioDeviceWriteIOps: ?[]const ?ThrottleDevice = null,
+    BlkioDeviceReadBps: ?[]const ThrottleDevice = null,
+    BlkioDeviceWriteBps: ?[]const ThrottleDevice = null,
+    BlkioDeviceReadIOps: ?[]const ThrottleDevice = null,
+    BlkioDeviceWriteIOps: ?[]const ThrottleDevice = null,
     CpuPeriod: i32 = 0,
     CpuQuota: i32 = 0,
     CpuRealtimePeriod: i32 = 0,
@@ -117,8 +117,8 @@ pub const Resources = struct {
     CpusetCpus: ?string = null,
     CpusetMems: ?string = null,
     Devices: ?[]const DeviceMapping = null,
-    DeviceCgroupRules: ?[]const ?string = null,
-    DeviceRequests: ?[]const ?DeviceRequest = null,
+    DeviceCgroupRules: ?[]const string = null,
+    DeviceRequests: ?[]const DeviceRequest = null,
     KernelMemoryTCP: i32 = 0,
     MemoryReservation: i32 = 0,
     MemorySwap: i32 = 0,
@@ -253,9 +253,9 @@ pub const HostConfig = internal.AllOf(&.{
 });
 
 pub const ContainerConfig = struct {
-    Hostname: ?string = null,
-    Domainname: ?string = null,
-    User: ?string = null,
+    Hostname: ?string = "",
+    Domainname: ?string = "",
+    User: ?string = "",
     AttachStdin: bool = false,
     AttachStdout: bool = false,
     AttachStderr: bool = false,
@@ -267,15 +267,15 @@ pub const ContainerConfig = struct {
     Cmd: ?[]const string = null,
     Healthcheck: ?HealthConfig = null,
     ArgsEscaped: bool = false,
-    Image: ?string = null,
+    Image: ?string = "",
     Volumes: ?struct {} = null,
     WorkingDir: ?string = null,
     Entrypoint: ?[]const string = null,
     NetworkDisabled: bool = false,
-    MacAddress: ?string = null,
+    MacAddress: ?string = "",
     OnBuild: ?[]const string = null,
     Labels: ?struct {} = null,
-    StopSignal: ?string = null,
+    StopSignal: ?string = "",
     StopTimeout: i32 = 0,
     Shell: ?[]const string = null,
 };
@@ -389,7 +389,7 @@ pub const Volume = struct {
     Name: string,
     Driver: string,
     Mountpoint: string,
-    CreatedAt: ?string = null,
+    CreatedAt: ?string = "",
     Status: ?struct {} = null,
     Labels: struct {},
     Scope: enum {
@@ -583,7 +583,7 @@ pub const PluginPrivilege = struct {
 };
 
 pub const Plugin = struct {
-    Id: ?string = null,
+    Id: ?string = "",
     Name: string,
     Enabled: bool,
     Settings: struct {
@@ -592,9 +592,9 @@ pub const Plugin = struct {
         Args: []const string,
         Devices: []const PluginDevice,
     },
-    PluginReference: ?string = null,
+    PluginReference: ?string = "",
     Config: struct {
-        DockerVersion: ?string = null,
+        DockerVersion: ?string = "",
         Description: string,
         Documentation: string,
         Interface: struct {
@@ -1446,8 +1446,9 @@ pub const @"/containers/create" = struct {
         .post,
         internal.name(Top, @This()),
         void,
-        struct { name: ?string = "", platform: string = "" },
-        struct { body: internal.AllOf(&.{ ContainerConfig, struct { HostConfig: HostConfig, NetworkingConfig: NetworkingConfig } }) },
+        struct { name: string = "", platform: string = "" },
+        struct { body: struct { ContainerConfig: ContainerConfig, HostConfig: HostConfig, NetworkingConfig: NetworkingConfig}},
+        //struct { body: internal.AllOf(&.{ ContainerConfig, struct { HostConfig: HostConfig, NetworkingConfig: NetworkingConfig } } ) },
         union(enum) {
             @"201": ContainerCreateResponse,
             @"400": ErrorResponse,
@@ -1989,7 +1990,7 @@ pub const @"/auth" = struct {
         void,
         struct { authConfig: AuthConfig },
         union(enum) {
-            @"200": struct { Status: string, IdentityToken: ?string = null },
+            @"200": struct { Status: string, IdentityToken: ?string = "" },
             @"204": void,
             @"401": ErrorResponse,
             @"500": ErrorResponse,

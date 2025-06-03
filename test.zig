@@ -19,19 +19,17 @@ test "prune containers" {
     const alloc = gpa.allocator();
 
     const response = try docker.@"/containers/prune".post(alloc, .{ .filters = "" });
-    std.debug.print("{any}", .{ response });
-    //for (response.@"200") |item| {
-    //    std.debug.print("RECLAIMED: {s}", .{ item.SpaceReclaimed });
-    //}
 
+    std.debug.print("{any}", .{ response });
 }
 
 test "create container" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const alloc = gpa.allocator();
     const response = try docker.@"/containers/create".post(alloc, .{
+        // Now optional?
     },.{
-        .body = .{ .Image = "hello-world", .HostConfig = .{}, .NetworkingConfig = .{} }
+        .body = .{ .ContainerConfig = .{ .Image = "hello-world" }, .HostConfig = .{}, .NetworkingConfig = .{} }
     });
     std.debug.print("{any}", .{ response });
 }
