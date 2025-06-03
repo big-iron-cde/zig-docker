@@ -112,11 +112,10 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
             defer paramsQ.inner.deinit(alloc);
 
             const full_url = try std.mem.concat(alloc, u8, &.{ url, "?", try paramsQ.encode() });
-            std.log.debug("{s} {s}", .{ @tagName(fixMethod(method)), full_url });
-
+            std.debug.print("{s} {s}", .{ @tagName(fixMethod(method)), full_url });
             var paramsB = try newUrlValues(alloc, B, argsB);
             defer paramsB.inner.deinit(alloc);
-
+            std.debug.print("BODY: {any} -> {any}\n", .{argsB, paramsB.encode()});
             var gpa = std.heap.GeneralPurposeAllocator(.{}){};
             var client = std.http.Client{ .allocator = gpa.allocator() };
             defer client.deinit();
@@ -125,8 +124,11 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
             const uri = try std.Uri.parse(full_url);
             var req = try client.open(fixMethod(method), uri, .{ .server_header_buffer = &headers });
             defer req.deinit();
-
+            
             try req.send();
+            if (fixMethod(method) != .GET) {
+                //try req.writeAll(paramsQ.encode());
+            }
             try req.finish();
             try req.wait();
 
@@ -134,15 +136,16 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
 
             const length = req.response.content_length orelse return error.NoBodyLength;
             const code = translate_http_codes(req.response.status);
-
-            std.log.debug("{s}", .{body[0..length]});
+            
+            std.debug.print("\nAPI RESPONSE: {s}\n", .{body[0..length]});
 
             inline for (std.meta.fields(R)) |item| {
                 if (std.mem.eql(u8, item.name, code)) {
                     var stream = std.json.Scanner.initCompleteInput(alloc, body[0..length]);
-                    var diag = std.json.Diagnostics{};
-                    stream.enableDiagnostics(&diag);
-                    const res = try std.json.parseFromSlice(std.meta.FieldType(R, @field(std.meta.FieldEnum(R), item.name)), alloc, stream.input, .{});
+                    std.debug.print("\n{any}\n", .{std.meta.FieldType(R, @field(std.meta.FieldEnum(R), item.name))});
+                    const res = try std.json.parseFromTokenSource(std.meta.FieldType(R, @field(std.meta.FieldEnum(R), item.name)), alloc, &stream, .{
+                        .ignore_unknown_fields = true,
+                    });
                     return @unionInit(R, item.name, res.value);
                 }
             }
@@ -180,7 +183,8 @@ fn newUrlValues(alloc: std.mem.Allocator, comptime T: type, args: T) !*UrlValues
         } else if (U == i32) {
             try params.append(key, try std.fmt.allocPrint(alloc, "{d}", .{value}));
         } else {
-            @compileError(@typeName(U));
+            std.debug.print("{any}", .{ U });
+            //@compileError(@typeName(U));
         }
     }
     return params;

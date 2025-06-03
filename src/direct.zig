@@ -102,10 +102,10 @@ pub const Resources = struct {
     Memory: i32 = 0,
     CgroupParent: ?string = null,
     BlkioWeight: i32 = 0,
-    BlkioWeightDevice: []const struct {
+    BlkioWeightDevice: ?[]const struct {
         Path: ?string = null,
         Weight: i32 = 0,
-    },
+    } = null,
     BlkioDeviceReadBps: ?[]const ?ThrottleDevice = null,
     BlkioDeviceWriteBps: ?[]const ?ThrottleDevice = null,
     BlkioDeviceReadIOps: ?[]const ?ThrottleDevice = null,
@@ -127,11 +127,11 @@ pub const Resources = struct {
     OomKillDisable: bool = false,
     Init: bool = false,
     PidsLimit: i32 = 0,
-    Ulimits: []const struct {
+    Ulimits: ?[]const struct {
         Name: ?string = "",
         Soft: i32,
         Hard: i32,
-    },
+    } = null,
     CpuCount: i32 = 0,
     CpuPercent: i32 = 0,
     IOMaximumIOps: i32 = 0,
@@ -192,7 +192,7 @@ pub const HostConfig = internal.AllOf(&.{
     struct {
         Binds: ?[]const ?string = null,
         ContainerIDFile: ?string = null,
-        LogConfig: struct {
+        LogConfig: ?struct {
             Type: enum {
                 @"json-file",
                 syslog,
@@ -205,7 +205,7 @@ pub const HostConfig = internal.AllOf(&.{
                 none,
             } = .@"json-file",
             Config: ?struct {} = null,
-        },
+        } = null,
         NetworkMode: ?string = null,
         PortBindings: ?PortMap = null,
         RestartPolicy: ?RestartPolicy = null,
@@ -253,7 +253,7 @@ pub const HostConfig = internal.AllOf(&.{
 });
 
 pub const ContainerConfig = struct {
-    Hostname: string,
+    Hostname: ?string = null,
     Domainname: ?string = null,
     User: ?string = null,
     AttachStdin: bool = false,
@@ -281,7 +281,7 @@ pub const ContainerConfig = struct {
 };
 
 pub const NetworkingConfig = struct {
-    EndpointsConfig: struct {},
+    EndpointsConfig: ?struct {} = null,
 };
 
 pub const NetworkSettings = struct {
@@ -1446,7 +1446,7 @@ pub const @"/containers/create" = struct {
         .post,
         internal.name(Top, @This()),
         void,
-        struct { name: string, platform: string = "" },
+        struct { name: ?string = "", platform: string = "" },
         struct { body: internal.AllOf(&.{ ContainerConfig, struct { HostConfig: HostConfig, NetworkingConfig: NetworkingConfig } }) },
         union(enum) {
             @"201": ContainerCreateResponse,
@@ -1808,10 +1808,10 @@ pub const @"/containers/prune" = struct {
         .post,
         internal.name(Top, @This()),
         void,
-        struct { filters: string },
+        struct { filters: string = "" },
         void,
         union(enum) {
-            @"200": struct { ContainersDeleted: []const string, SpaceReclaimed: i32 },
+            @"200": struct { ContainersDeleted: ?[]const string = null, SpaceReclaimed: i32 },
             @"500": ErrorResponse,
         },
     );
