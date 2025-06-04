@@ -7,10 +7,11 @@ test "list images" {
 
     const response = try docker.@"/images/json".get(alloc, .{
         .all = true,
+        .filters = "",
     });
 
     for (response.@"200") |item| {
-        std.debug.print("ID: {s} CREATED: {d}\n", .{ item.Id[0..20], item.Created });
+        std.debug.print("\nID: {s} CREATED: {d}\n", .{ item.Id[0..20], item.Created });
     }
 }
 
@@ -20,16 +21,12 @@ test "prune containers" {
 
     const response = try docker.@"/containers/prune".post(alloc, .{ .filters = "" });
 
-    std.debug.print("{any}", .{ response });
+    std.debug.print("\n{any} {any}\n", .{ response.@"200".ContainersDeleted, response.@"200".SpaceReclaimed });
 }
 
 test "create container" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const alloc = gpa.allocator();
-    const response = try docker.@"/containers/create".post(alloc, .{
-        // Now optional?
-    },.{
-        .body = .{ .ContainerConfig = .{ .Image = "hello-world" }, .HostConfig = .{}, .NetworkingConfig = .{} }
-    });
-    std.debug.print("{any}", .{ response });
+    const response = try docker.@"/containers/create".post(alloc, .{ .name = "hello-test" }, .{ .body = .{ .Image = "hello-world" } });
+    std.debug.print("{any}", .{response});
 }

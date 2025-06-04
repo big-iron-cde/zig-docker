@@ -1,9 +1,7 @@
 const std = @import("std");
-//const http = @import("http");
 const builtin = @import("builtin");
 const string = []const u8;
 const UrlValues = @import("zig-UrlValues/main.zig");
-const extras = @import("zig-extras/lib.zig");
 const shared = @import("./shared.zig");
 
 pub fn AllOf(comptime xs: []const type) type {
@@ -127,10 +125,11 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
 
             var req = try client.open(fixMethod(method), uri, .{ .server_header_buffer = &headers });
             defer req.deinit();
-            
+
             try req.send();
 
             if (fixMethod(method) != .GET) {
+                //std.debug.print("{any}", .{try paramsB.encode()});
                 try req.writeAll(try paramsB.encode());
             }
 
@@ -141,7 +140,7 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
 
             const length = req.response.content_length orelse return error.NoBodyLength;
             const code = translate_http_codes(req.response.status);
-            
+
             inline for (std.meta.fields(R)) |item| {
                 if (std.mem.eql(u8, item.name, code)) {
                     var stream = std.json.Scanner.initCompleteInput(alloc, body[0..length]);
@@ -186,9 +185,11 @@ fn newUrlValues(alloc: std.mem.Allocator, comptime T: type, args: T) !*UrlValues
         } else if (U == i32) {
             try params.append(key, try std.fmt.allocPrint(alloc, "{d}", .{value}));
         } else {
+            std.debug.print("{any}", .{U});
             //@compileError(@typeName(U));
         }
     }
+    std.debug.print("\nPARAMS: {any}\n", .{params});
     return params;
 }
 
