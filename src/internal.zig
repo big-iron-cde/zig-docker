@@ -122,21 +122,21 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
             var body: [1024 * 1024 * 5]u8 = undefined;
 
             const uri = try std.Uri.parse(full_url);
-
             var req = try client.open(fixMethod(method), uri, .{ .server_header_buffer = &headers });
             defer req.deinit();
 
             if (fixMethod(method) != .GET) {
                 if (B != void) {
                     // convert the struct to JSON
-                    const json_body = try std.json.stringifyAlloc(alloc, argsB, .{});
+                    const json_body = try std.json.stringifyAlloc(alloc, argsB.body, .{});
                     defer alloc.free(json_body);
                     // debug output
                     std.debug.print("\nSending JSON body: {s}\n", .{json_body});
 
                     // IMPORTANT: Set transfer encoding before sending
                     req.transfer_encoding = .{ .content_length = json_body.len };
-
+                    // Docker requires at least the MIME type sent as an additional header
+                    req.extra_headers = &.{.{ .name = "Content-Type", .value = "application/json" }};
                     // Send the headers
                     try req.send();
 
@@ -144,7 +144,7 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
                     // try req.writer().writeAll("Content-Type: application/json\r\n\r\n");
 
                     // now write the body
-                    // try req.writeAll(json_body);
+                    try req.writeAll(json_body);
                 } else {
                     // with empty bodies (backward compatibility)
                     try req.send();
