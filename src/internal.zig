@@ -105,7 +105,6 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
 
             const endpoint_actual = comptime replace(replace(endpoint, '{', "{["), '}', "]s}");
             const url = try std.fmt.allocPrint(alloc, "http://localhost:2375" ++ "/" ++ shared.version ++ endpoint_actual, if (P != void) argsP else .{});
-
             var paramsQ = try newUrlValues(alloc, Q, argsQ);
             defer paramsQ.inner.deinit(alloc);
 
@@ -130,13 +129,15 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
                     // convert the struct to JSON
                     const json_body = try std.json.stringifyAlloc(alloc, argsB.body, .{});
                     defer alloc.free(json_body);
-                    // debug output
-                    std.debug.print("\nSending JSON body: {s}\n", .{json_body});
+                    //std.debug.print("\nSending JSON body: {s}\n", .{json_body});
 
                     // IMPORTANT: Set transfer encoding before sending
                     req.transfer_encoding = .{ .content_length = json_body.len };
+
                     // Docker requires at least the MIME type sent as an additional header
-                    req.extra_headers = &.{.{ .name = "Content-Type", .value = "application/json" }};
+                    req.headers.content_type = .{ .override = "application/json" };
+                    req.headers.accept_encoding = .{ .override = "application/json" };
+
                     // Send the headers
                     try req.send();
 
@@ -165,7 +166,6 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
             inline for (std.meta.fields(R)) |item| {
                 if (std.mem.eql(u8, item.name, code)) {
                     var stream = std.json.Scanner.initCompleteInput(alloc, body[0..length]);
-
                     const res = try std.json.parseFromTokenSource(std.meta.FieldType(R, @field(std.meta.FieldEnum(R), item.name)), alloc, &stream, .{
                         .ignore_unknown_fields = true,
                     });
@@ -206,11 +206,11 @@ fn newUrlValues(alloc: std.mem.Allocator, comptime T: type, args: T) !*UrlValues
         } else if (U == i32) {
             try params.append(key, try std.fmt.allocPrint(alloc, "{d}", .{value}));
         } else {
-            std.debug.print("{any}", .{U});
+            //std.debug.print("{any}", .{U});
             //@compileError(@typeName(U));
         }
     }
-    std.debug.print("\nPARAMS: {any}\n", .{params});
+    //std.debug.print("\nPARAMS: {any}\n", .{params});
     return params;
 }
 
@@ -262,8 +262,10 @@ pub fn isZigString(comptime T: type) bool {
 }
 
 pub fn translate_http_codes(Status: anytype) string {
+    std.debug.print("{any}", .{Status});
     const result = switch (Status) {
         std.http.Status.ok => "200",
+        std.http.Status.created => "201",
         else => "500",
     };
     return result;

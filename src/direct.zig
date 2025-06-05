@@ -517,7 +517,7 @@ pub const ProgressDetail = struct {
 };
 
 pub const ErrorResponse = struct {
-    message: string,
+    message: ?string = "",
 };
 
 pub const IdResponse = struct {
@@ -1142,8 +1142,8 @@ pub const ContainerState = struct {
 };
 
 pub const ContainerCreateResponse = struct {
-    Id: string,
-    Warnings: []const string,
+    Id: ?string = "",
+    Warnings: ?[]const string = null,
 };
 
 pub const ContainerWaitResponse = struct {
