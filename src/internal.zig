@@ -262,7 +262,6 @@ pub fn isZigString(comptime T: type) bool {
 }
 
 pub fn translate_http_codes(Status: anytype) string {
-    std.debug.print("{any}", .{Status});
     const result = switch (Status) {
         std.http.Status.ok => "200",
         std.http.Status.created => "201",
