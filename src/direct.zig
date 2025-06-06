@@ -1570,7 +1570,7 @@ pub const @"/containers/{id}/start" = struct {
         .post,
         internal.name(Top, @This()),
         struct { id: string },
-        struct { detachKeys: string },
+        struct { detachKeys: ?string = "" },
         void,
         union(enum) {
             @"204": void,
