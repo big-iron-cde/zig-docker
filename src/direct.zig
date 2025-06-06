@@ -100,25 +100,25 @@ pub const RestartPolicy = struct {
 pub const Resources = struct {
     CpuShares: i32 = 0,
     Memory: i32 = 0,
-    CgroupParent: string = null,
+    CgroupParent: ?string = null,
     BlkioWeight: i32 = 0,
-    BlkioWeightDevice: []const struct {
-        Path: string = null,
+    BlkioWeightDevice: ?[]const struct {
+        Path: ?string = null,
         Weight: i32 = 0,
-    },
-    BlkioDeviceReadBps: []const ThrottleDevice = null,
-    BlkioDeviceWriteBps: []const ThrottleDevice = null,
-    BlkioDeviceReadIOps: []const ThrottleDevice = null,
-    BlkioDeviceWriteIOps: []const ThrottleDevice = null,
+    } = null,
+    BlkioDeviceReadBps: ?[]const ThrottleDevice = null,
+    BlkioDeviceWriteBps: ?[]const ThrottleDevice = null,
+    BlkioDeviceReadIOps: ?[]const ThrottleDevice = null,
+    BlkioDeviceWriteIOps: ?[]const ThrottleDevice = null,
     CpuPeriod: i32 = 0,
     CpuQuota: i32 = 0,
     CpuRealtimePeriod: i32 = 0,
     CpuRealtimeRuntime: i32 = 0,
-    CpusetCpus: string = null,
-    CpusetMems: string = null,
-    Devices: []const DeviceMapping = null,
-    DeviceCgroupRules: []const string = null,
-    DeviceRequests: []const DeviceRequest = null,
+    CpusetCpus: ?string = null,
+    CpusetMems: ?string = null,
+    Devices: ?[]const DeviceMapping = null,
+    DeviceCgroupRules: ?[]const string = null,
+    DeviceRequests: ?[]const DeviceRequest = null,
     KernelMemoryTCP: i32 = 0,
     MemoryReservation: i32 = 0,
     MemorySwap: i32 = 0,
@@ -127,11 +127,11 @@ pub const Resources = struct {
     OomKillDisable: bool = false,
     Init: bool = false,
     PidsLimit: i32 = 0,
-    Ulimits: []const struct {
-        Name: string,
+    Ulimits: ?[]const struct {
+        Name: ?string = "",
         Soft: i32,
         Hard: i32,
-    },
+    } = null,
     CpuCount: i32 = 0,
     CpuPercent: i32 = 0,
     IOMaximumIOps: i32 = 0,
@@ -190,9 +190,9 @@ pub const HealthcheckResult = struct {
 pub const HostConfig = internal.AllOf(&.{
     Resources,
     struct {
-        Binds: []const string = null,
-        ContainerIDFile: string = null,
-        LogConfig: struct {
+        Binds: ?[]const ?string = null,
+        ContainerIDFile: ?string = null,
+        LogConfig: ?struct {
             Type: enum {
                 @"json-file",
                 syslog,
@@ -204,58 +204,58 @@ pub const HostConfig = internal.AllOf(&.{
                 etwlogs,
                 none,
             } = .@"json-file",
-            Config: struct {} = null,
-        },
-        NetworkMode: string = null,
-        PortBindings: PortMap = null,
-        RestartPolicy: RestartPolicy = null,
+            Config: ?struct {} = null,
+        } = null,
+        NetworkMode: ?string = null,
+        PortBindings: ?PortMap = null,
+        RestartPolicy: ?RestartPolicy = null,
         AutoRemove: bool = false,
-        VolumeDriver: string = null,
-        VolumesFrom: []const string = null,
-        Mounts: []const Mount = null,
-        ConsoleSize: []const i32 = 0,
-        Annotations: struct {} = null,
-        CapAdd: []const string = null,
-        CapDrop: []const string = null,
+        VolumeDriver: ?string = null,
+        VolumesFrom: ?[]const ?string = null,
+        Mounts: ?[]const ?Mount = null,
+        ConsoleSize: ?[]const i32 = null,
+        Annotations: ?struct {} = null,
+        CapAdd: ?[]const ?string = null,
+        CapDrop: ?[]const ?string = null,
         CgroupnsMode: enum {
             private,
             host,
         } = .private,
-        Dns: []const string = null,
-        DnsOptions: []const string = null,
-        DnsSearch: []const string = null,
-        ExtraHosts: []const string = null,
-        GroupAdd: []const string = null,
-        IpcMode: string = null,
-        Cgroup: string = null,
-        Links: []const string = null,
+        Dns: ?[]const ?string = null,
+        DnsOptions: ?[]const ?string = null,
+        DnsSearch: ?[]const ?string = null,
+        ExtraHosts: ?[]const ?string = null,
+        GroupAdd: ?[]const ?string = null,
+        IpcMode: ?string = null,
+        Cgroup: ?string = null,
+        Links: ?[]const ?string = null,
         OomScoreAdj: i32 = 0,
-        PidMode: string = null,
+        PidMode: ?string = null,
         Privileged: bool = false,
         PublishAllPorts: bool = false,
         ReadonlyRootfs: bool = false,
-        SecurityOpt: []const string = null,
-        StorageOpt: struct {} = null,
-        Tmpfs: struct {} = null,
-        UTSMode: string = null,
-        UsernsMode: string = null,
+        SecurityOpt: ?[]const ?string = null,
+        StorageOpt: ?struct {} = null,
+        Tmpfs: ?struct {} = null,
+        UTSMode: ?string = null,
+        UsernsMode: ?string = null,
         ShmSize: i32 = 0,
-        Sysctls: struct {} = null,
-        Runtime: string = null,
+        Sysctls: ?struct {} = null,
+        Runtime: ?string = null,
         Isolation: enum {
             default,
             process,
             hyperv,
         } = .default,
-        MaskedPaths: []const string = null,
-        ReadonlyPaths: []const string = null,
+        MaskedPaths: ?[]const ?string = null,
+        ReadonlyPaths: ?[]const ?string = null,
     },
 });
 
 pub const ContainerConfig = struct {
-    Hostname: string,
-    Domainname: ?string = null,
-    User: ?string = null,
+    Hostname: ?string = "",
+    Domainname: ?string = "",
+    User: ?string = "",
     AttachStdin: bool = false,
     AttachStdout: bool = false,
     AttachStderr: bool = false,
@@ -267,21 +267,21 @@ pub const ContainerConfig = struct {
     Cmd: ?[]const string = null,
     Healthcheck: ?HealthConfig = null,
     ArgsEscaped: bool = false,
-    Image: string = null,
+    Image: ?string = "",
     Volumes: ?struct {} = null,
-    WorkingDir: string = null,
+    WorkingDir: ?string = null,
     Entrypoint: ?[]const string = null,
     NetworkDisabled: bool = false,
-    MacAddress: ?string = null,
+    MacAddress: ?string = "",
     OnBuild: ?[]const string = null,
     Labels: ?struct {} = null,
-    StopSignal: ?string = null,
+    StopSignal: ?string = "",
     StopTimeout: i32 = 0,
     Shell: ?[]const string = null,
 };
 
 pub const NetworkingConfig = struct {
-    EndpointsConfig: struct {},
+    EndpointsConfig: ?struct {} = null,
 };
 
 pub const NetworkSettings = struct {
@@ -389,7 +389,7 @@ pub const Volume = struct {
     Name: string,
     Driver: string,
     Mountpoint: string,
-    CreatedAt: ?string = null,
+    CreatedAt: ?string = "",
     Status: ?struct {} = null,
     Labels: struct {},
     Scope: enum {
@@ -517,7 +517,7 @@ pub const ProgressDetail = struct {
 };
 
 pub const ErrorResponse = struct {
-    message: string,
+    message: ?string = "",
 };
 
 pub const IdResponse = struct {
@@ -583,7 +583,7 @@ pub const PluginPrivilege = struct {
 };
 
 pub const Plugin = struct {
-    Id: ?string = null,
+    Id: ?string = "",
     Name: string,
     Enabled: bool,
     Settings: struct {
@@ -592,9 +592,9 @@ pub const Plugin = struct {
         Args: []const string,
         Devices: []const PluginDevice,
     },
-    PluginReference: ?string = null,
+    PluginReference: ?string = "",
     Config: struct {
-        DockerVersion: ?string = null,
+        DockerVersion: ?string = "",
         Description: string,
         Documentation: string,
         Interface: struct {
@@ -1142,8 +1142,8 @@ pub const ContainerState = struct {
 };
 
 pub const ContainerCreateResponse = struct {
-    Id: string,
-    Warnings: []const string,
+    Id: ?string = "",
+    Warnings: ?[]const string = null,
 };
 
 pub const ContainerWaitResponse = struct {
@@ -1446,8 +1446,10 @@ pub const @"/containers/create" = struct {
         .post,
         internal.name(Top, @This()),
         void,
-        struct { name: string, platform: string = "" },
-        struct { body: internal.AllOf(&.{ ContainerConfig, struct { HostConfig: HostConfig, NetworkingConfig: NetworkingConfig } }) },
+        struct { name: string = "", platform: string = "" },
+        //struct { body: struct { ContainerConfig: ContainerConfig, HostConfig: HostConfig, NetworkingConfig: NetworkingConfig}},
+        //struct { body: internal.AllOf(&.{ ContainerConfig, struct { HostConfig: HostConfig, NetworkingConfig: NetworkingConfig } } ) },
+        struct { body: ContainerConfig },
         union(enum) {
             @"201": ContainerCreateResponse,
             @"400": ErrorResponse,
@@ -1808,10 +1810,10 @@ pub const @"/containers/prune" = struct {
         .post,
         internal.name(Top, @This()),
         void,
-        struct { filters: string },
+        struct { filters: string = "" },
         void,
         union(enum) {
-            @"200": struct { ContainersDeleted: []const string, SpaceReclaimed: i32 },
+            @"200": struct { ContainersDeleted: ?[]const string = null, SpaceReclaimed: i32 },
             @"500": ErrorResponse,
         },
     );
@@ -1989,7 +1991,7 @@ pub const @"/auth" = struct {
         void,
         struct { authConfig: AuthConfig },
         union(enum) {
-            @"200": struct { Status: string, IdentityToken: ?string = null },
+            @"200": struct { Status: string, IdentityToken: ?string = "" },
             @"204": void,
             @"401": ErrorResponse,
             @"500": ErrorResponse,

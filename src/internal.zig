@@ -1,9 +1,7 @@
 const std = @import("std");
-//const http = @import("http");
 const builtin = @import("builtin");
 const string = []const u8;
 const UrlValues = @import("zig-UrlValues/main.zig");
-const extras = @import("zig-extras/lib.zig");
 const shared = @import("./shared.zig");
 
 pub fn AllOf(comptime xs: []const type) type {
@@ -107,12 +105,10 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
 
             const endpoint_actual = comptime replace(replace(endpoint, '{', "{["), '}', "]s}");
             const url = try std.fmt.allocPrint(alloc, "http://localhost:2375" ++ "/" ++ shared.version ++ endpoint_actual, if (P != void) argsP else .{});
-
             var paramsQ = try newUrlValues(alloc, Q, argsQ);
             defer paramsQ.inner.deinit(alloc);
 
             const full_url = try std.mem.concat(alloc, u8, &.{ url, "?", try paramsQ.encode() });
-            std.log.debug("{s} {s}", .{ @tagName(fixMethod(method)), full_url });
 
             var paramsB = try newUrlValues(alloc, B, argsB);
             defer paramsB.inner.deinit(alloc);
@@ -120,29 +116,59 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
             var gpa = std.heap.GeneralPurposeAllocator(.{}){};
             var client = std.http.Client{ .allocator = gpa.allocator() };
             defer client.deinit();
+
             var headers: [4096]u8 = undefined;
             var body: [1024 * 1024 * 5]u8 = undefined;
+
             const uri = try std.Uri.parse(full_url);
             var req = try client.open(fixMethod(method), uri, .{ .server_header_buffer = &headers });
             defer req.deinit();
 
-            try req.send();
+            if (fixMethod(method) != .GET) {
+                if (B != void) {
+                    // convert the struct to JSON
+                    const json_body = try std.json.stringifyAlloc(alloc, argsB.body, .{});
+                    defer alloc.free(json_body);
+                    //std.debug.print("\nSending JSON body: {s}\n", .{json_body});
+
+                    // IMPORTANT: Set transfer encoding before sending
+                    req.transfer_encoding = .{ .content_length = json_body.len };
+
+                    // Docker requires at least the MIME type sent as an additional header
+                    req.headers.content_type = .{ .override = "application/json" };
+                    req.headers.accept_encoding = .{ .override = "application/json" };
+
+                    // Send the headers
+                    try req.send();
+
+                    //  write Content-Type header directly in the HTTP stream
+                    // try req.writer().writeAll("Content-Type: application/json\r\n\r\n");
+
+                    // now write the body
+                    try req.writeAll(json_body);
+                } else {
+                    // with empty bodies (backward compatibility)
+                    try req.send();
+                    try req.writeAll(try paramsB.encode());
+                }
+            } else {
+                // GET requests
+                try req.send();
+            }
+
             try req.finish();
             try req.wait();
 
-            _ = try req.readAll(&body);
-
-            const length = req.response.content_length orelse return error.NoBodyLength;
+            const read_result = try req.readAll(&body);
+            const length = read_result;
             const code = translate_http_codes(req.response.status);
-
-            std.log.debug("{s}", .{body[0..length]});
 
             inline for (std.meta.fields(R)) |item| {
                 if (std.mem.eql(u8, item.name, code)) {
                     var stream = std.json.Scanner.initCompleteInput(alloc, body[0..length]);
-                    var diag = std.json.Diagnostics{};
-                    stream.enableDiagnostics(&diag);
-                    const res = try std.json.parseFromSlice(std.meta.FieldType(R, @field(std.meta.FieldEnum(R), item.name)), alloc, stream.input, .{});
+                    const res = try std.json.parseFromTokenSource(std.meta.FieldType(R, @field(std.meta.FieldEnum(R), item.name)), alloc, &stream, .{
+                        .ignore_unknown_fields = true,
+                    });
                     return @unionInit(R, item.name, res.value);
                 }
             }
@@ -180,9 +206,11 @@ fn newUrlValues(alloc: std.mem.Allocator, comptime T: type, args: T) !*UrlValues
         } else if (U == i32) {
             try params.append(key, try std.fmt.allocPrint(alloc, "{d}", .{value}));
         } else {
-            @compileError(@typeName(U));
+            //std.debug.print("{any}", .{U});
+            //@compileError(@typeName(U));
         }
     }
+    //std.debug.print("\nPARAMS: {any}\n", .{params});
     return params;
 }
 
@@ -236,6 +264,7 @@ pub fn isZigString(comptime T: type) bool {
 pub fn translate_http_codes(Status: anytype) string {
     const result = switch (Status) {
         std.http.Status.ok => "200",
+        std.http.Status.created => "201",
         else => "500",
     };
     return result;
