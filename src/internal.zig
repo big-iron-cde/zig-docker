@@ -267,6 +267,7 @@ pub fn translate_http_codes(Status: anytype) string {
         std.http.Status.created => "201",
         std.http.Status.no_content => "204",
         std.http.Status.not_modified => "304",
+        std.http.Status.bad_request => "400",
         std.http.Status.not_found => "404",
         else => "500",
     };

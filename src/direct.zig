@@ -1061,25 +1061,25 @@ pub const ServiceUpdateResponse = struct {
 };
 
 pub const ContainerSummary = struct {
-    Id: string,
-    Names: []const string,
-    Image: string,
-    ImageID: string,
-    Command: string,
-    Created: i32,
-    Ports: []const Port,
-    SizeRw: i32,
-    SizeRootFs: i32,
-    Labels: struct {},
-    State: string,
-    Status: string,
-    HostConfig: struct {
-        NetworkMode: string,
-    },
-    NetworkSettings: struct {
+    Id: ?string = "",
+    Names: ?[]const string = null,
+    Image: ?string = "",
+    ImageID: ?string = "",
+    Command: ?string = "",
+    Created: i32 = 0,
+    Ports: ?[]const Port = null,
+    SizeRw: i32 = 0,
+    SizeRootFs: i32 = 0,
+    Labels: ?struct {} = null,
+    State: ?string = "",
+    Status: ?string = "",
+    HostConfig: ?struct {
+        NetworkMode: ?string = "",
+    } = null,
+    NetworkSettings: ?struct {
         Networks: struct {},
-    },
-    Mounts: []const MountPoint,
+    } = null,
+    Mounts: ?[]const MountPoint = null,
 };
 
 pub const Driver = struct {
