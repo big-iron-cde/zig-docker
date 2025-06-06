@@ -236,6 +236,10 @@ pub fn isZigString(comptime T: type) bool {
 pub fn translate_http_codes(Status: anytype) string {
     const result = switch (Status) {
         std.http.Status.ok => "200",
+        std.http.Status.created => "201",
+        std.http.Status.no_content => "204",
+        std.http.Status.not_modified => "304",
+        std.http.Status.not_found => "404",
         else => "500",
     };
     return result;
