@@ -516,6 +516,8 @@ pub const ProgressDetail = struct {
     total: i32,
 };
 
+pub const NoContentResponse = struct {};
+
 pub const ErrorResponse = struct {
     message: string,
 };
@@ -1573,6 +1575,8 @@ pub const @"/containers/{id}/start" = struct {
         struct { detachKeys: ?string = "" },
         void,
         union(enum) {
+            @"204": NoContentResponse,
+            @"304": NoContentResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
         },
@@ -1587,8 +1591,8 @@ pub const @"/containers/{id}/stop" = struct {
         struct { signal: ?string = null, t: ?i32 = 0 },
         void,
         union(enum) {
-            @"204": void,
-            @"304": void,
+            @"204": NoContentResponse,
+            @"304": NoContentResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
         },

@@ -160,8 +160,20 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
             try req.finish();
             try req.wait();
 
-            const length = try req.readAll(&body);
+            var length = try req.readAll(&body);
             const code = translate_http_codes(req.response.status);
+
+            if (std.mem.eql(u8, code, "204") or std.mem.eql(u8, code, "304")) {
+                // Both response codes generate an empty response;
+                // our job is to provide an empty JSON
+                body = undefined;
+                // Repopulate with an empty JSON string
+                const empty = "{}";
+                @memcpy(body[0..empty.len], empty);
+                std.log.warn("REPLACED: {s}", .{body[0..empty.len]});
+                body[empty.len] = 0;
+                length = empty.len;
+            }
 
             inline for (std.meta.fields(R)) |item| {
                 if (std.mem.eql(u8, item.name, code)) {

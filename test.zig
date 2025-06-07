@@ -49,6 +49,16 @@ test "start container" {
     }
 }
 
+test "stop container" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const alloc = gpa.allocator();
+    const list = try docker.@"/containers/json".get(alloc, .{ .limit = 1, .filters = "" });
+    for (list.@"200") |container| {
+        std.log.warn("Stopping: {s}", .{container.Id});
+        _ = try docker.@"/containers/{id}/stop".post(alloc, .{ .id = container.Id }, .{});
+    }
+}
+
 test "prune containers" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const alloc = gpa.allocator();
