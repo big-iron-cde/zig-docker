@@ -170,7 +170,6 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
                 // Repopulate with an empty JSON string
                 const empty = "{}";
                 @memcpy(body[0..empty.len], empty);
-                std.log.warn("REPLACED: {s}", .{body[0..empty.len]});
                 body[empty.len] = 0;
                 length = empty.len;
             }
