@@ -517,7 +517,7 @@ pub const ProgressDetail = struct {
 };
 
 pub const ErrorResponse = struct {
-    message: ?string = "",
+    message: string,
 };
 
 pub const IdResponse = struct {
@@ -1061,7 +1061,7 @@ pub const ServiceUpdateResponse = struct {
 };
 
 pub const ContainerSummary = struct {
-    Id: ?string = "",
+    Id: string,
     Names: ?[]const string = null,
     Image: ?string = "",
     ImageID: ?string = "",
@@ -1142,7 +1142,7 @@ pub const ContainerState = struct {
 };
 
 pub const ContainerCreateResponse = struct {
-    Id: ?string = "",
+    Id: string,
     Warnings: ?[]const string = null,
 };
 
@@ -1573,8 +1573,8 @@ pub const @"/containers/{id}/start" = struct {
         struct { detachKeys: ?string = "" },
         void,
         union(enum) {
-            @"204": void,
-            @"304": void,
+            @"204": bool,
+            @"304": bool,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
         },
@@ -1586,7 +1586,7 @@ pub const @"/containers/{id}/stop" = struct {
         .post,
         internal.name(Top, @This()),
         struct { id: string },
-        struct { signal: string, t: i32 },
+        struct { signal: ?string = null, t: ?i32 = 0 },
         void,
         union(enum) {
             @"204": void,
@@ -1813,7 +1813,7 @@ pub const @"/containers/prune" = struct {
         struct { filters: string = "" },
         void,
         union(enum) {
-            @"200": struct { ContainersDeleted: ?[]const string = null, SpaceReclaimed: i32 },
+            @"200": struct { ContainersDeleted: []const string, SpaceReclaimed: i32 },
             @"500": ErrorResponse,
         },
     );

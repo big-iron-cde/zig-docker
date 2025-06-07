@@ -122,7 +122,6 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
 
             const uri = try std.Uri.parse(full_url);
             var req = try client.open(fixMethod(method), uri, .{ .server_header_buffer = &headers });
-            defer req.deinit();
 
             if (fixMethod(method) != .GET) {
                 if (B != void) {
@@ -156,17 +155,18 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
                 try req.send();
             }
 
+            defer req.deinit();
+
             try req.finish();
             try req.wait();
 
-            const read_result = try req.readAll(&body);
-            const length = read_result;
+            const length = try req.readAll(&body);
             const code = translate_http_codes(req.response.status);
 
             inline for (std.meta.fields(R)) |item| {
                 if (std.mem.eql(u8, item.name, code)) {
-                    var stream = std.json.Scanner.initCompleteInput(alloc, body[0..length]);
-                    const res = try std.json.parseFromTokenSource(std.meta.FieldType(R, @field(std.meta.FieldEnum(R), item.name)), alloc, &stream, .{
+                    const stream = std.json.Scanner.initCompleteInput(alloc, body[0..length]);
+                    const res = try std.json.parseFromSlice(std.meta.FieldType(R, @field(std.meta.FieldEnum(R), item.name)), alloc, stream.input, .{
                         .ignore_unknown_fields = true,
                     });
                     return @unionInit(R, item.name, res.value);
@@ -269,6 +269,8 @@ pub fn translate_http_codes(Status: anytype) string {
         std.http.Status.not_modified => "304",
         std.http.Status.bad_request => "400",
         std.http.Status.not_found => "404",
+        std.http.Status.conflict => "409",
+        std.http.Status.internal_server_error => "500",
         else => "500",
     };
     return result;
