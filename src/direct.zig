@@ -1573,8 +1573,6 @@ pub const @"/containers/{id}/start" = struct {
         struct { detachKeys: ?string = "" },
         void,
         union(enum) {
-            @"204": bool,
-            @"304": bool,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
         },
