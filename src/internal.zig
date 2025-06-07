@@ -128,7 +128,6 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
                     // convert the struct to JSON
                     const json_body = try std.json.stringifyAlloc(alloc, argsB.body, .{});
                     defer alloc.free(json_body);
-                    //std.debug.print("\nSending JSON body: {s}\n", .{json_body});
 
                     // IMPORTANT: Set transfer encoding before sending
                     req.transfer_encoding = .{ .content_length = json_body.len };
@@ -139,9 +138,6 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
 
                     // Send the headers
                     try req.send();
-
-                    //  write Content-Type header directly in the HTTP stream
-                    // try req.writer().writeAll("Content-Type: application/json\r\n\r\n");
 
                     // now write the body
                     try req.writeAll(json_body);
@@ -217,11 +213,11 @@ fn newUrlValues(alloc: std.mem.Allocator, comptime T: type, args: T) !*UrlValues
         } else if (U == i32) {
             try params.append(key, try std.fmt.allocPrint(alloc, "{d}", .{value}));
         } else {
-            //std.debug.print("{any}", .{U});
+            // TODO: Determine if we need this function after being
+            //       able to stringify values passed as params?
             //@compileError(@typeName(U));
         }
     }
-    //std.debug.print("\nPARAMS: {any}\n", .{params});
     return params;
 }
 
@@ -274,6 +270,8 @@ pub fn isZigString(comptime T: type) bool {
 
 pub fn translate_http_codes(Status: anytype) string {
     const result = switch (Status) {
+        std.http.Status.@"continue" => "100",
+        std.http.Status.switching_protocols => "101",
         std.http.Status.ok => "200",
         std.http.Status.created => "201",
         std.http.Status.no_content => "204",
@@ -282,6 +280,7 @@ pub fn translate_http_codes(Status: anytype) string {
         std.http.Status.not_found => "404",
         std.http.Status.conflict => "409",
         std.http.Status.internal_server_error => "500",
+        std.http.Status.service_unavailable => "503",
         else => "500",
     };
     return result;

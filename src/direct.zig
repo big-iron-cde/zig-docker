@@ -1607,7 +1607,7 @@ pub const @"/containers/{id}/restart" = struct {
         struct { signal: string, t: i32 },
         void,
         union(enum) {
-            @"204": void,
+            @"204": NoContentResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
         },
@@ -1622,7 +1622,7 @@ pub const @"/containers/{id}/kill" = struct {
         struct { signal: string = "SIGKILL" },
         void,
         union(enum) {
-            @"204": void,
+            @"204": NoContentResponse,
             @"404": ErrorResponse,
             @"409": ErrorResponse,
             @"500": ErrorResponse,
@@ -1653,7 +1653,7 @@ pub const @"/containers/{id}/rename" = struct {
         struct { name: string },
         void,
         union(enum) {
-            @"204": void,
+            @"204": NoContentResponse,
             @"404": ErrorResponse,
             @"409": ErrorResponse,
             @"500": ErrorResponse,
@@ -1669,7 +1669,7 @@ pub const @"/containers/{id}/pause" = struct {
         void,
         void,
         union(enum) {
-            @"204": void,
+            @"204": NoContentResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
         },
@@ -1684,7 +1684,7 @@ pub const @"/containers/{id}/unpause" = struct {
         void,
         void,
         union(enum) {
-            @"204": void,
+            @"204": NoContentResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
         },
@@ -1699,8 +1699,8 @@ pub const @"/containers/{id}/attach" = struct {
         struct { detachKeys: string, logs: bool = false, stream: bool = false, stdin: bool = false, stdout: bool = false, stderr: bool = false },
         void,
         union(enum) {
-            @"101": void,
-            @"200": void,
+            @"101": NoContentResponse,
+            @"200": NoContentResponse,
             @"400": ErrorResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
@@ -1716,8 +1716,8 @@ pub const @"/containers/{id}/attach/ws" = struct {
         struct { detachKeys: string, logs: bool = false, stream: bool = false, stdin: bool = false, stdout: bool = false, stderr: bool = false },
         void,
         union(enum) {
-            @"101": void,
-            @"200": void,
+            @"101": NoContentResponse,
+            @"200": NoContentResponse,
             @"400": ErrorResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
@@ -1753,7 +1753,7 @@ pub const @"/containers/{id}" = struct {
         struct { v: bool = false, force: bool = false, link: bool = false },
         void,
         union(enum) {
-            @"204": void,
+            @"204": NoContentResponse,
             @"400": ErrorResponse,
             @"404": ErrorResponse,
             @"409": ErrorResponse,
@@ -1770,7 +1770,7 @@ pub const @"/containers/{id}/archive" = struct {
         struct { path: string },
         void,
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"400": ErrorResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
@@ -1784,7 +1784,7 @@ pub const @"/containers/{id}/archive" = struct {
         struct { path: string },
         void,
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"400": ErrorResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
@@ -1798,7 +1798,7 @@ pub const @"/containers/{id}/archive" = struct {
         struct { path: string, noOverwriteDirNonDir: string, copyUIDGID: string },
         struct { inputStream: string },
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"400": ErrorResponse,
             @"403": ErrorResponse,
             @"404": ErrorResponse,
@@ -1843,7 +1843,7 @@ pub const @"/build" = struct {
         struct { dockerfile: string = "Dockerfile", t: string, extrahosts: string, remote: string, q: bool = false, nocache: bool = false, cachefrom: string, pull: string, rm: bool = true, forcerm: bool = false, memory: i32, memswap: i32, cpushares: i32, cpusetcpus: string, cpuperiod: i32, cpuquota: i32, buildargs: string, shmsize: i32, squash: bool, labels: string, networkmode: string, platform: string = "", target: string = "", outputs: string = "" },
         struct { inputStream: string },
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"400": ErrorResponse,
             @"500": ErrorResponse,
         },
@@ -1872,7 +1872,7 @@ pub const @"/images/create" = struct {
         struct { fromImage: string, fromSrc: string, repo: string, tag: string, message: string, changes: []const string, platform: string = "" },
         struct { inputImage: string },
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
         },
@@ -1917,7 +1917,7 @@ pub const @"/images/{name}/push" = struct {
         struct { tag: string },
         void,
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
         },
@@ -1932,7 +1932,7 @@ pub const @"/images/{name}/tag" = struct {
         struct { repo: string, tag: string },
         void,
         union(enum) {
-            @"201": void,
+            @"201": NoContentResponse,
             @"400": ErrorResponse,
             @"404": ErrorResponse,
             @"409": ErrorResponse,
@@ -1994,7 +1994,7 @@ pub const @"/auth" = struct {
         struct { authConfig: AuthConfig },
         union(enum) {
             @"200": struct { Status: string, IdentityToken: ?string = "" },
-            @"204": void,
+            @"204": NoContentResponse,
             @"401": ErrorResponse,
             @"500": ErrorResponse,
         },
@@ -2140,7 +2140,7 @@ pub const @"/images/load" = struct {
         struct { quiet: bool = false },
         struct { imagesTarball: string },
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"500": ErrorResponse,
         },
     );
@@ -2170,7 +2170,7 @@ pub const @"/exec/{id}/start" = struct {
         void,
         struct { execStartConfig: struct { Detach: bool, Tty: bool, ConsoleSize: []const i32 } },
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"404": ErrorResponse,
             @"409": ErrorResponse,
         },
@@ -2185,7 +2185,7 @@ pub const @"/exec/{id}/resize" = struct {
         struct { h: i32, w: i32 },
         void,
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"400": ErrorResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
@@ -2257,7 +2257,7 @@ pub const @"/volumes/{name}" = struct {
         struct { version: i32 },
         struct { body: struct { Spec: ClusterVolumeSpec } },
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"400": ErrorResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
@@ -2272,7 +2272,7 @@ pub const @"/volumes/{name}" = struct {
         struct { force: bool = false },
         void,
         union(enum) {
-            @"204": void,
+            @"204": NoContentResponse,
             @"404": ErrorResponse,
             @"409": ErrorResponse,
             @"500": ErrorResponse,
@@ -2329,7 +2329,7 @@ pub const @"/networks/{id}" = struct {
         void,
         void,
         union(enum) {
-            @"204": void,
+            @"204": NoContentResponse,
             @"403": ErrorResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
@@ -2361,7 +2361,7 @@ pub const @"/networks/{id}/connect" = struct {
         void,
         struct { container: struct { Container: string, EndpointConfig: EndpointSettings } },
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"403": ErrorResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
@@ -2377,7 +2377,7 @@ pub const @"/networks/{id}/disconnect" = struct {
         void,
         struct { container: struct { Container: string, Force: bool } },
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"403": ErrorResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
@@ -2435,7 +2435,7 @@ pub const @"/plugins/pull" = struct {
         struct { remote: string, name: string },
         struct { body: []const PluginPrivilege },
         union(enum) {
-            @"204": void,
+            @"204": NoContentResponse,
             @"500": ErrorResponse,
         },
     );
@@ -2479,7 +2479,7 @@ pub const @"/plugins/{name}/enable" = struct {
         struct { timeout: i32 = 0 },
         void,
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
         },
@@ -2494,7 +2494,7 @@ pub const @"/plugins/{name}/disable" = struct {
         void,
         void,
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
         },
@@ -2509,7 +2509,7 @@ pub const @"/plugins/{name}/upgrade" = struct {
         struct { remote: string },
         struct { body: []const PluginPrivilege },
         union(enum) {
-            @"204": void,
+            @"204": NoContentResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
         },
@@ -2524,7 +2524,7 @@ pub const @"/plugins/create" = struct {
         struct { name: string },
         struct { tarContext: string },
         union(enum) {
-            @"204": void,
+            @"204": NoContentResponse,
             @"500": ErrorResponse,
         },
     );
@@ -2538,7 +2538,7 @@ pub const @"/plugins/{name}/push" = struct {
         void,
         void,
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
         },
@@ -2553,7 +2553,7 @@ pub const @"/plugins/{name}/set" = struct {
         void,
         struct { body: []const string },
         union(enum) {
-            @"204": void,
+            @"204": NoContentResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
         },
@@ -2597,7 +2597,7 @@ pub const @"/nodes/{id}" = struct {
         struct { force: bool = false },
         void,
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
             @"503": ErrorResponse,
@@ -2613,7 +2613,7 @@ pub const @"/nodes/{id}/update" = struct {
         struct { version: i32 },
         struct { body: NodeSpec },
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"400": ErrorResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
@@ -2662,7 +2662,7 @@ pub const @"/swarm/join" = struct {
         void,
         struct { body: struct { ListenAddr: string, AdvertiseAddr: string, DataPathAddr: string, RemoteAddrs: []const string, JoinToken: string } },
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"400": ErrorResponse,
             @"500": ErrorResponse,
             @"503": ErrorResponse,
@@ -2678,7 +2678,7 @@ pub const @"/swarm/leave" = struct {
         struct { force: bool = false },
         void,
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"500": ErrorResponse,
             @"503": ErrorResponse,
         },
@@ -2693,7 +2693,7 @@ pub const @"/swarm/update" = struct {
         struct { version: i32, rotateWorkerToken: bool = false, rotateManagerToken: bool = false, rotateManagerUnlockKey: bool = false },
         struct { body: SwarmSpec },
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"400": ErrorResponse,
             @"500": ErrorResponse,
             @"503": ErrorResponse,
@@ -2724,7 +2724,7 @@ pub const @"/swarm/unlock" = struct {
         void,
         struct { body: struct { UnlockKey: string } },
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"500": ErrorResponse,
             @"503": ErrorResponse,
         },
@@ -2786,7 +2786,7 @@ pub const @"/services/{id}" = struct {
         void,
         void,
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
             @"503": ErrorResponse,
@@ -2930,7 +2930,7 @@ pub const @"/secrets/{id}" = struct {
         void,
         void,
         union(enum) {
-            @"204": void,
+            @"204": NoContentResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
             @"503": ErrorResponse,
@@ -2946,7 +2946,7 @@ pub const @"/secrets/{id}/update" = struct {
         struct { version: i32 },
         struct { body: SecretSpec },
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"400": ErrorResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
@@ -3008,7 +3008,7 @@ pub const @"/configs/{id}" = struct {
         void,
         void,
         union(enum) {
-            @"204": void,
+            @"204": NoContentResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
             @"503": ErrorResponse,
@@ -3024,7 +3024,7 @@ pub const @"/configs/{id}/update" = struct {
         struct { version: i32 },
         struct { body: ConfigSpec },
         union(enum) {
-            @"200": void,
+            @"200": NoContentResponse,
             @"400": ErrorResponse,
             @"404": ErrorResponse,
             @"500": ErrorResponse,
@@ -3056,7 +3056,7 @@ pub const @"/session" = struct {
         void,
         void,
         union(enum) {
-            @"101": void,
+            @"101": NoContentResponse,
             @"400": ErrorResponse,
             @"500": ErrorResponse,
         },
