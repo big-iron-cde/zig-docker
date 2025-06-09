@@ -172,8 +172,8 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
 
             inline for (std.meta.fields(R)) |item| {
                 if (std.mem.eql(u8, item.name, code)) {
-                    const stream = std.json.Scanner.initCompleteInput(alloc, body[0..length]);
-                    const res = try std.json.parseFromSlice(std.meta.FieldType(R, @field(std.meta.FieldEnum(R), item.name)), alloc, stream.input, .{
+                    var stream = std.json.Scanner.initCompleteInput(alloc, body[0..length]);
+                    const res = try std.json.parseFromTokenSource(std.meta.FieldType(R, @field(std.meta.FieldEnum(R), item.name)), alloc, &stream, .{
                         .ignore_unknown_fields = true,
                     });
                     return @unionInit(R, item.name, res.value);
