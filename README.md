@@ -1,18 +1,10 @@
 # zig-docker
 
-Zig bindings for the Docker Engine API.
+Zig bindings for the Docker API, updated for use with Docker API `1.43`. This repository
+extends [zig-docker](https://github.com/nektro/zig-docker), authored by [nektro](https://github.com/nektro)
+to support the work of Big Iron, a cloud-development environment (CDE) built and maintained
+by faculty and students at Allegheny College. 
 
-API docs: https://docs.docker.com/engine/api/v1.41/
+## Building
 
-WIP as its based on the partially-incomplete Swagger API (https://github.com/moby/moby/issues/27919)
-
-## Updating
-```
-$ zig build run
-$ zig fmt src/direct.zig
-```
-
-## Example Program
-```
-$ zig build test
-```
+To compile the source of the module: `zig build`.
