@@ -19,7 +19,10 @@ test "list images" {
 test "create container" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const alloc = gpa.allocator();
-    const response = try docker.@"/containers/create".post(alloc, .{ .name = "theia-test" }, .{ .body = .{ .Image = "ghcr.io/eclipse-theia/theia-ide/theia-ide:1.61.0" } });
+    const config = docker.ContainerConfig { .Image = "ghcr.io/eclipse-theia/theia-ide/theia-ide:1.61.0" };
+    const host = docker.HostConfig { .{}, .{} };
+    const network = docker.NetworkingConfig{};
+    const response = try docker.@"/containers/create".post(alloc, .{ .name = "theia-test" }, .{ .body = .{ .ContainerConfig = config, .HostConfig = host, .NetworkConfig = network } });
     switch (response) {
         .@"201" => {
             std.log.warn("Created: {s}", .{response.@"201".Id});
@@ -45,7 +48,7 @@ test "start container" {
     const list = try docker.@"/containers/json".get(alloc, .{ .limit = 1, .filters = "" });
     for (list.@"200") |container| {
         std.log.warn("Starting: {s}", .{container.Id});
-        _ = try docker.@"/containers/{id}/start".post(alloc, .{ .id = container.Id }, .{});
+        _ = try docker.@"/containers/{id}/start".post(alloc, .{ .id = container.Id }, .{ });
     }
 }
 
