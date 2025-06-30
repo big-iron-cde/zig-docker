@@ -4,6 +4,9 @@ const string = []const u8;
 const UrlValues = @import("zig-UrlValues/main.zig");
 const shared = @import("./shared.zig");
 
+// TODO: Deprecate AllOf in favor of very similar thing that
+//       runs only on complex structs in internal (?); changes
+//       several API calls via direct.
 pub fn AllOf(comptime xs: []const type) type {
     var fields: []const std.builtin.Type.StructField = &.{};
     inline for (xs) |item| {
@@ -125,7 +128,7 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
 
             if (fixMethod(method) != .GET) {
                 if (B != void) {
-                    // convert the struct to JSON
+
                     const json_body = try std.json.stringifyAlloc(alloc, argsB.body, .{});
                     defer alloc.free(json_body);
 

@@ -1449,9 +1449,7 @@ pub const @"/containers/create" = struct {
         internal.name(Top, @This()),
         void,
         struct { name: string = "", platform: string = "" },
-        //struct { body: struct { ContainerConfig: ContainerConfig, HostConfig: HostConfig, NetworkingConfig: NetworkingConfig}},
-        //struct { body: internal.AllOf(&.{ ContainerConfig, struct { HostConfig: HostConfig, NetworkingConfig: NetworkingConfig } } ) },
-        struct { body: ContainerConfig },
+        struct { body: internal.AllOf(&.{ ContainerConfig, struct { HostConfig: HostConfig, NetworkingConfig: NetworkingConfig } } ) },
         union(enum) {
             @"201": ContainerCreateResponse,
             @"400": ErrorResponse,
