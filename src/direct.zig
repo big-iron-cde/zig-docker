@@ -187,8 +187,7 @@ pub const HealthcheckResult = struct {
     Output: string,
 };
 
-//pub const HostConfig = internal.AllOf(&.{
-pub const HostConfig = struct{
+pub const HostConfig = internal.AllOf(&.{
     Resources,
     struct {
         Binds: ?[]const ?string = null,
@@ -251,8 +250,7 @@ pub const HostConfig = struct{
         MaskedPaths: ?[]const ?string = null,
         ReadonlyPaths: ?[]const ?string = null,
     },
-};
-//});
+});
 
 pub const ContainerConfig = struct {
     Hostname: ?string = "",
@@ -1451,9 +1449,7 @@ pub const @"/containers/create" = struct {
         internal.name(Top, @This()),
         void,
         struct { name: string = "", platform: string = "" },
-        //struct { body: struct { ContainerConfig: ContainerConfig, HostConfig: HostConfig, NetworkingConfig: NetworkingConfig}},
-        //struct { body: internal.AllOf(&.{ ContainerConfig, struct { HostConfig: HostConfig, NetworkingConfig: NetworkingConfig } } ) },
-        struct { body: struct { ContainerConfig: ContainerConfig, HostConfig: HostConfig, NetworkConfig: NetworkingConfig} },
+        struct { body: internal.AllOf(&.{ ContainerConfig, struct { HostConfig: HostConfig, NetworkingConfig: NetworkingConfig } } ) },
         union(enum) {
             @"201": ContainerCreateResponse,
             @"400": ErrorResponse,

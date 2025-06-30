@@ -128,22 +128,9 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
 
             if (fixMethod(method) != .GET) {
                 if (B != void) {
-                    // convert the struct to JSON
-                    inline for (std.meta.fields(@TypeOf(argsB.body))) | arg | {
-                        //inline for(arg) | field | {
-                        //    std.warn.log("{any}", .{std.meta.fields(field)});
-                        //}
-                        //std.log.warn("{any}", .{@typeInfo(@TypeOf(arg))});
-                        std.log.warn("{any}", .{arg});
-                        //if(@typeInfo(@TypeOf(arg)) == .Array) {
-                        //    std.log.warn("{any}", .{arg});
-                        //}
-                    }
-
 
                     const json_body = try std.json.stringifyAlloc(alloc, argsB.body, .{});
                     defer alloc.free(json_body);
-                    std.log.warn("{s}", .{json_body});
 
                     // IMPORTANT: Set transfer encoding before sending
                     req.transfer_encoding = .{ .content_length = json_body.len };

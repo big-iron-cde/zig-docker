@@ -19,10 +19,13 @@ test "list images" {
 test "create container" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const alloc = gpa.allocator();
-    const config = docker.ContainerConfig { .Image = "ghcr.io/eclipse-theia/theia-ide/theia-ide:1.61.0" };
-    const host = docker.HostConfig { .{}, .{} };
-    const network = docker.NetworkingConfig{};
-    const response = try docker.@"/containers/create".post(alloc, .{ .name = "theia-test" }, .{ .body = .{ .ContainerConfig = config, .HostConfig = host, .NetworkConfig = network } });
+    const response = try docker.@"/containers/create".post(alloc, .{ .name = "theia-test" }, .{ 
+        .body = .{ 
+            .Image = "ghcr.io/eclipse-theia/theia-ide/theia-ide:1.61.0",
+            .HostConfig = .{},
+            .NetworkingConfig = .{} 
+        } 
+    });
     switch (response) {
         .@"201" => {
             std.log.warn("Created: {s}", .{response.@"201".Id});
