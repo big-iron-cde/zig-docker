@@ -22,7 +22,12 @@ test "create container" {
     const response = try docker.@"/containers/create".post(alloc, .{ .name = "theia-test" }, .{ 
         .body = .{ 
             .Image = "ghcr.io/eclipse-theia/theia-ide/theia-ide:1.61.0",
-            .HostConfig = .{},
+            .HostConfig = .{
+                .Binds = [1][]const u8{"/:/"},
+                .PortBindings = struct{
+                    .@"3000" = .{ .HostPort = "3000" }
+                }
+            },
             .NetworkingConfig = .{} 
         } 
     });
