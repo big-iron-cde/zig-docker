@@ -1,6 +1,7 @@
 const internal = @import("./internal.zig");
 const string = []const u8;
 const Top = @This();
+const std = @import("std");
 
 pub const Port = struct {
     IP: ?string = null,
@@ -310,7 +311,43 @@ pub const Address = struct {
     PrefixLen: i32,
 };
 
-pub const PortMap = struct {};
+// pub const PortMap = struct {};
+pub const PortMap = struct {
+    bindings: std.StringHashMap([]const PortBinding),
+
+    const Self = @This();
+
+    pub fn init(allocator: std.mem.Allocator) Self {
+        return Self{ .bindings = std.StringHashMap([]const PortBinding).init(allocator) };
+    }
+
+    pub fn deinit(self: *Self) void {
+        self.bindings.deinit();
+    }
+
+    pub fn put(self: *Self, key: []const u8, value: []const PortBinding) !void {
+        return self.bindings.put(key, value);
+    }
+
+    pub fn get(self: *Self, key: []const u8) ?[]const PortBinding {
+        return self.bindings.get(key);
+    }
+
+    pub fn count(self: *Self) u32 {
+        return @intCast(self.bindings.count());
+    }
+
+    // serialization is forced here
+    pub fn jsonStringify(self: Self, jws: anytype) !void {
+        try jws.beginObject();
+        var iterator = self.bindings.iterator();
+        while (iterator.next()) |entry| {
+            try jws.objectField(entry.key_ptr.*);
+            try jws.write(entry.value_ptr.*);
+        }
+        try jws.endObject();
+    }
+};
 
 pub const PortBinding = struct {
     HostIp: string,
@@ -1449,7 +1486,7 @@ pub const @"/containers/create" = struct {
         internal.name(Top, @This()),
         void,
         struct { name: string = "", platform: string = "" },
-        struct { body: internal.AllOf(&.{ ContainerConfig, struct { HostConfig: HostConfig, NetworkingConfig: NetworkingConfig } } ) },
+        struct { body: internal.AllOf(&.{ ContainerConfig, struct { HostConfig: HostConfig, NetworkingConfig: NetworkingConfig } }) },
         union(enum) {
             @"201": ContainerCreateResponse,
             @"400": ErrorResponse,
