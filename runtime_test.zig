@@ -56,9 +56,45 @@ test "list containers" {
 test "start container" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const alloc = gpa.allocator();
+
+    // create safe dummy folder path
+    const home_dir = std.posix.getenv("HOME") orelse {
+        std.log.warn("Could not get HOME environment variable", .{});
+        return;
+    };
+
+    const dummy_folder_path = try std.fmt.allocPrint(alloc, "{s}/dummy-docker-volume", .{home_dir});
+    defer alloc.free(dummy_folder_path);
+
+    // create the dummy folder if it doesn't exist
+    std.fs.makeDirAbsolute(dummy_folder_path) catch |err| switch (err) {
+        error.PathAlreadyExists => {}, // Already exists, that's fine
+        else => {
+            std.log.warn("Failed to create dummy folder: {s}", .{dummy_folder_path});
+            return err;
+        },
+    };
+
+    // verify dummy folder exists and list its contents
+    var dir = std.fs.openDirAbsolute(dummy_folder_path, .{}) catch |err| {
+        std.log.warn("Could not open dummy folder: {any}", .{err});
+        return;
+    };
+    defer dir.close();
+
+    std.log.warn("Dummy folder exists: {s}", .{dummy_folder_path});
+
+    var iterator = dir.iterate();
+    std.log.warn("Contents:", .{});
+    while (try iterator.next()) |entry| {
+        std.log.warn("  - {s} ({s})", .{ entry.name, @tagName(entry.kind) });
+    }
+
+    // start containers
     const list = try docker.@"/containers/json".get(alloc, .{ .limit = 1, .filters = "" });
     for (list.@"200") |container| {
         std.log.warn("Starting: {s}", .{container.Id});
         _ = try docker.@"/containers/{id}/start".post(alloc, .{ .id = container.Id }, .{});
+        std.log.warn("Files will persist in: {s}", .{dummy_folder_path});
     }
 }
