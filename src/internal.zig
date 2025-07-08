@@ -128,7 +128,6 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
 
             if (fixMethod(method) != .GET) {
                 if (B != void) {
-
                     const json_body = try std.json.stringifyAlloc(alloc, argsB.body, .{});
                     defer alloc.free(json_body);
 
@@ -172,7 +171,7 @@ pub fn Fn(comptime method: Method, comptime endpoint: string, comptime P: type, 
                 body[empty.len] = 0;
                 length = empty.len;
             }
-
+            //std.log.warn("{s}", .{body[0..length]});
             inline for (std.meta.fields(R)) |item| {
                 if (std.mem.eql(u8, item.name, code)) {
                     var stream = std.json.Scanner.initCompleteInput(alloc, body[0..length]);

@@ -1,6 +1,7 @@
 const internal = @import("./internal.zig");
 const string = []const u8;
 const Top = @This();
+const std = @import("std");
 
 pub const Port = struct {
     IP: ?string = null,
@@ -14,20 +15,20 @@ pub const Port = struct {
 };
 
 pub const MountPoint = struct {
-    Type: enum {
+    Type: ?enum {
         bind,
         volume,
         tmpfs,
         npipe,
         cluster,
-    },
-    Name: string,
-    Source: string,
-    Destination: string,
-    Driver: string,
-    Mode: string,
-    RW: bool,
-    Propagation: string,
+    } = .bind,
+    Name: ?string = null,
+    Source: ?string = null,
+    Destination: ?string = null,
+    Driver: ?string = null,
+    Mode: ?string = null,
+    RW: ?bool = true,
+    Propagation: ?string = null,
 };
 
 pub const DeviceMapping = struct {
@@ -52,16 +53,16 @@ pub const ThrottleDevice = struct {
 pub const Mount = struct {
     Target: string,
     Source: string,
-    Type: enum {
+    Type: ?enum {
         bind,
         volume,
         tmpfs,
         npipe,
         cluster,
-    },
-    ReadOnly: bool,
-    Consistency: string,
-    BindOptions: struct {
+    } = .volume,
+    ReadOnly: ?bool = false,
+    Consistency: ?string = null,
+    BindOptions: ?struct {
         Propagation: enum {
             private,
             rprivate,
@@ -69,22 +70,22 @@ pub const Mount = struct {
             rshared,
             slave,
             rslave,
-        },
-        NonRecursive: bool,
-        CreateMountpoint: bool,
-    },
-    VolumeOptions: struct {
+        } = .private,
+        NonRecursive: ?bool = false,
+        CreateMountpoint: ?bool = false,
+    } = null,
+    VolumeOptions: ?struct {
         NoCopy: bool,
         Labels: struct {},
         DriverConfig: struct {
             Name: string,
             Options: struct {},
         },
-    },
-    TmpfsOptions: struct {
+    } = null,
+    TmpfsOptions: ?struct {
         SizeBytes: i32,
         Mode: i32,
-    },
+    } = null,
 };
 
 pub const RestartPolicy = struct {
@@ -190,7 +191,7 @@ pub const HealthcheckResult = struct {
 pub const HostConfig = internal.AllOf(&.{
     Resources,
     struct {
-        Binds: ?[]const ?string = null,
+        Binds: ?[]const string = null,
         ContainerIDFile: ?string = null,
         LogConfig: ?struct {
             Type: enum {
@@ -209,46 +210,46 @@ pub const HostConfig = internal.AllOf(&.{
         NetworkMode: ?string = null,
         PortBindings: ?PortMap = null,
         RestartPolicy: ?RestartPolicy = null,
-        AutoRemove: bool = false,
+        AutoRemove: ?bool = false,
         VolumeDriver: ?string = null,
-        VolumesFrom: ?[]const ?string = null,
-        Mounts: ?[]const ?Mount = null,
+        VolumesFrom: ?[]const string = null,
+        Mounts: ?[]const Mount = null,
         ConsoleSize: ?[]const i32 = null,
         Annotations: ?struct {} = null,
-        CapAdd: ?[]const ?string = null,
-        CapDrop: ?[]const ?string = null,
-        CgroupnsMode: enum {
+        CapAdd: ?[]const string = null,
+        CapDrop: ?[]const string = null,
+        CgroupnsMode: ?enum {
             private,
             host,
         } = .private,
-        Dns: ?[]const ?string = null,
-        DnsOptions: ?[]const ?string = null,
-        DnsSearch: ?[]const ?string = null,
-        ExtraHosts: ?[]const ?string = null,
-        GroupAdd: ?[]const ?string = null,
+        Dns: ?[]const string = null,
+        DnsOptions: ?[]const string = null,
+        DnsSearch: ?[]const string = null,
+        ExtraHosts: ?[]const string = null,
+        GroupAdd: ?[]const string = null,
         IpcMode: ?string = null,
         Cgroup: ?string = null,
-        Links: ?[]const ?string = null,
+        Links: ?[]const string = null,
         OomScoreAdj: i32 = 0,
         PidMode: ?string = null,
-        Privileged: bool = false,
-        PublishAllPorts: bool = false,
-        ReadonlyRootfs: bool = false,
-        SecurityOpt: ?[]const ?string = null,
+        Privileged: ?bool = false,
+        PublishAllPorts: ?bool = false,
+        ReadonlyRootfs: ?bool = false,
+        SecurityOpt: ?[]const string = null,
         StorageOpt: ?struct {} = null,
         Tmpfs: ?struct {} = null,
         UTSMode: ?string = null,
         UsernsMode: ?string = null,
-        ShmSize: i32 = 0,
+        ShmSize: ?i32 = 0,
         Sysctls: ?struct {} = null,
         Runtime: ?string = null,
-        Isolation: enum {
+        Isolation: ?enum {
             default,
             process,
             hyperv,
         } = .default,
-        MaskedPaths: ?[]const ?string = null,
-        ReadonlyPaths: ?[]const ?string = null,
+        MaskedPaths: ?[]const string = null,
+        ReadonlyPaths: ?[]const string = null,
     },
 });
 
@@ -285,24 +286,24 @@ pub const NetworkingConfig = struct {
 };
 
 pub const NetworkSettings = struct {
-    Bridge: string,
-    SandboxID: string,
-    HairpinMode: bool,
-    LinkLocalIPv6Address: string,
-    LinkLocalIPv6PrefixLen: i32,
-    Ports: PortMap,
-    SandboxKey: string,
-    SecondaryIPAddresses: []const Address,
-    SecondaryIPv6Addresses: []const Address,
-    EndpointID: string,
-    Gateway: string,
-    GlobalIPv6Address: string,
-    GlobalIPv6PrefixLen: i32,
-    IPAddress: string,
-    IPPrefixLen: i32,
-    IPv6Gateway: string,
-    MacAddress: string,
-    Networks: struct {},
+    Bridge: ?string = null,
+    SandboxID: ?string = null,
+    HairpinMode: bool = false,
+    LinkLocalIPv6Address: ?string = null,
+    LinkLocalIPv6PrefixLen: ?i32 = 0,
+    Ports: ?PortMap = null,
+    SandboxKey: ?string = null,
+    SecondaryIPAddresses: ?[]const Address = null,
+    SecondaryIPv6Addresses: ?[]const Address = null,
+    EndpointID: ?string = null,
+    Gateway: ?string = null,
+    GlobalIPv6Address: ?string = null,
+    GlobalIPv6PrefixLen: ?i32 = 0,
+    IPAddress: ?string = null,
+    IPPrefixLen: ?i32 = 0,
+    IPv6Gateway: ?string = null,
+    MacAddress: ?string = null,
+    Networks: ?struct {} = null,
 };
 
 pub const Address = struct {
@@ -310,7 +311,43 @@ pub const Address = struct {
     PrefixLen: i32,
 };
 
-pub const PortMap = struct {};
+// pub const PortMap = struct {};
+pub const PortMap = struct {
+    bindings: std.StringHashMap([]const PortBinding),
+
+    const Self = @This();
+
+    pub fn init(allocator: std.mem.Allocator) Self {
+        return Self{ .bindings = std.StringHashMap([]const PortBinding).init(allocator) };
+    }
+
+    pub fn deinit(self: *Self) void {
+        self.bindings.deinit();
+    }
+
+    pub fn put(self: *Self, key: []const u8, value: []const PortBinding) !void {
+        return self.bindings.put(key, value);
+    }
+
+    pub fn get(self: *Self, key: []const u8) ?[]const PortBinding {
+        return self.bindings.get(key);
+    }
+
+    pub fn count(self: *Self) u32 {
+        return @intCast(self.bindings.count());
+    }
+
+    // serialization is forced here
+    pub fn jsonStringify(self: Self, jws: anytype) !void {
+        try jws.beginObject();
+        var iterator = self.bindings.iterator();
+        while (iterator.next()) |entry| {
+            try jws.objectField(entry.key_ptr.*);
+            try jws.write(entry.value_ptr.*);
+        }
+        try jws.endObject();
+    }
+};
 
 pub const PortBinding = struct {
     HostIp: string,
@@ -1068,10 +1105,10 @@ pub const ContainerSummary = struct {
     Image: ?string = "",
     ImageID: ?string = "",
     Command: ?string = "",
-    Created: i32 = 0,
+    Created: ?i32 = 0,
     Ports: ?[]const Port = null,
-    SizeRw: i32 = 0,
-    SizeRootFs: i32 = 0,
+    SizeRw: ?i32 = 0,
+    SizeRootFs: ?i32 = 0,
     Labels: ?struct {} = null,
     State: ?string = "",
     Status: ?string = "",
@@ -1079,7 +1116,7 @@ pub const ContainerSummary = struct {
         NetworkMode: ?string = "",
     } = null,
     NetworkSettings: ?struct {
-        Networks: struct {},
+        Networks: ?struct {} = null,
     } = null,
     Mounts: ?[]const MountPoint = null,
 };
@@ -1433,7 +1470,7 @@ pub const @"/containers/json" = struct {
         .get,
         internal.name(Top, @This()),
         void,
-        struct { all: bool = false, limit: i32, size: bool = false, filters: string },
+        struct { all: ?bool = false, limit: i32, size: ?bool = false, filters: ?string = null },
         void,
         union(enum) {
             @"200": []const ContainerSummary,
@@ -1449,7 +1486,7 @@ pub const @"/containers/create" = struct {
         internal.name(Top, @This()),
         void,
         struct { name: string = "", platform: string = "" },
-        struct { body: internal.AllOf(&.{ ContainerConfig, struct { HostConfig: HostConfig, NetworkingConfig: NetworkingConfig } } ) },
+        struct { body: internal.AllOf(&.{ ContainerConfig, struct { HostConfig: HostConfig, NetworkingConfig: NetworkingConfig } }) },
         union(enum) {
             @"201": ContainerCreateResponse,
             @"400": ErrorResponse,
