@@ -23,7 +23,12 @@
     // `zig build --fetch` can be used to fetch all dependencies of a package, recursively.
     // Once all dependencies are fetched, `zig build` no longer requires
     // internet connectivity.
-    .dependencies = .{},
+    .dependencies = .{
+        .docker = .{
+            .url = "https://github.com/big-iron-cde/zig-docker/archive/refs/tags/0.4.2.tar.gz",
+            .hash = "docker-0.4.2-dbHWXNm1AgAsRKjqGeGaKHtCNSi7qFDHhDTff2Zbe_LF",
+        },
+    },
     .paths = .{
         "build.zig",
         "build.zig.zon",
