@@ -42,7 +42,7 @@ test "create container" {
 
     const response = try docker.@"/containers/create".post(alloc, .{ .name = "theia-test" }, .{
         .body = .{
-            .Image = "ghcr.io/eclipse-theia/theia-ide/theia-ide:1.61.0",
+            .Image = "ghcr.io/eclipse-theia/theia-ide/theia-ide:1.63.200",
             .HostConfig = .{
                 .Binds = &[1][]const u8{path},
                 .PortBindings = port_map,
@@ -70,8 +70,9 @@ test "start container" {
     for (list.@"200") |container| {
         std.log.warn("Starting: {s}", .{container.Id});
         _ = try docker.@"/containers/{id}/start".post(alloc, .{ .id = container.Id }, .{});
-        std.time.sleep(120 * (1000 * std.time.ns_per_ms));
     }
+    // Keep all containers up for 2 minutes to access and test
+    std.time.sleep(500 * (1000 * std.time.ns_per_ms));
 }
 
 test "stop container" {
@@ -88,7 +89,7 @@ test "prune containers" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const alloc = gpa.allocator();
 
-    const response = try docker.@"/containers/prune".post(alloc, .{ });
+    const response = try docker.@"/containers/prune".post(alloc, .{});
     switch (response) {
         .@"200" => {
             for (response.@"200".ContainersDeleted) |container| {

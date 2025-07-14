@@ -15,7 +15,7 @@ pub const Port = struct {
 };
 
 pub const MountPoint = struct {
-    Type: ?enum {
+    Type: enum {
         bind,
         volume,
         tmpfs,
@@ -27,7 +27,7 @@ pub const MountPoint = struct {
     Destination: ?string = null,
     Driver: ?string = null,
     Mode: ?string = null,
-    RW: ?bool = true,
+    RW: bool = true,
     Propagation: ?string = null,
 };
 
